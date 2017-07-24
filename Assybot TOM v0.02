@@ -1,0 +1,107 @@
+ASSYSTATUSBOT TOIMINNALLINEN MÄÄRITTELY V 0.01
+------------------------------------------
+
+Komennot:
+/poll [x, y, z] 
+	* lista pollin vaihtoehtoja
+(Pollbot?)
+	* voi luoda pollin, joka automaattisesti laittaa ryhmän kalenteriin suosituimman vastauksen
+/assytapahtumat
+	* Tulevat 2-5 tapahtumaa
+/aikataulu x y
+	x = aika
+	y = string
+	* Voi syöttää aikamääreen ja stringin, joka kuvaa mitä silloin tehdään
+	* ilman syötteitä tulostaa tulevat 2-5 tapahtumaa kalenterissa
+/status x y
+	x = Käyttäjä
+	y = String
+	* Käyttäjä syöttää nykyisen statuksensa tai hakee kaikkien statuksen listana
+	
+	6h30m
+/esjonne
+	* "VOI VITUN JONNET", "NYKYNUORISO ON PASKAA" etc
+
+
+UUSI SETTI
+------------
+
+/eat = max food
+/sleep = max sleep
+/drinkES = gain sleep *
+/stashES = set current es count
+/eatMässy = gain food *
+/stashMässy = set current mässy count
+
+/status = palauttaa oman tilanteen
+/statusAll = palauttaa kaikkien tilanteen
+
+* = diminishing returns may apply
+
+OMINAISUUDET
+-------------
+/uni *
+/es (int)
+/esh (double)
+/fuudi *
+/mässy (int)
+/mässyh (double)
+/vitutus
+/saastaisuus *
+
+* = quartz-jobi, tippuu ajan myötä
+
+/lanpower
+
+lanpower = (0.8(uni) + 1.2(fuudi) + (1 - vitutus)) / 3
+vitutus = ((1 - uni) + (1 - fuudi) + saastaisuus) / 3
+
+if (saastaisuus > 0.8) lanpower - 0.3
+
+DECAY
+--------
+
+food = 6h
+sleep = 18h
+filth gain = 24h
+es gain to sleep = (0.3 * x) * 3
+
+x = hour gain
+
+def drinkEs(Lanplayer player) {
+	def esh = player.esh
+
+	if (esh == null) {
+		esh = 3
+	} else {
+		esh = esh - (0.3 * esh)
+	}
+	
+	player.sleep += esh
+	player.esh = esh
+
+}
+
+def eatMässy(Lanplayer player) {
+	def mässyh = player.mässyh
+
+	if (mässyh == null) {
+		mässyh = 1
+	} else {
+		mässyh = mässyh - (0.3 * mässyh)
+	}
+	
+	player.fuudi += mässyh
+	player.mässyh = mässyh
+
+}
+
+
+
+(/statusmax)
+(/statusmin)
+
+Arttu:
+Väsymys [=====|=====] 50%
+ES [|==========] 0%
+Nälkä [==========|] 100%
