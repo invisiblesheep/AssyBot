@@ -3,10 +3,10 @@ var http = require('http'),
     express = require('express'),
     bodyParser = require('body-parser'),
     path = require('path'),
-    MongoClient = require('mongodb').MongoClient,
+    //MongoClient = require('mongodb').MongoClient,
     Server = require('mongodb').Server,
     CollectionDriver = require('./collectionDriver').CollectionDriver,
-    mongoose = require('mongoose'),
+    //mongoose = require('mongoose'),
     assert = require('assert'),
     TelegramBot = require('node-telegram-bot-api')
     Lanaaja = require('./Lanaaja').Lanaaja;
@@ -21,10 +21,10 @@ app.set('port', process.env.PORT || 3002);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-//MongoDB
+/*//MongoDB
 var mongoHost = 'mongodb://localhost:27017/AssyBot';
 var collectionDriver;
-
+*/
 //Telegram
 
 const token = "433183839:AAGG7rJinMHDU4ViYi5cxqKRMX4a8bRNspY";
@@ -35,13 +35,13 @@ const url = 'https://arvala.eu';
 var telegram = new TelegramBot(token);
 
 telegram.setWebHook(`${url}/bot${token}`);
-
+/*
 MongoClient.connect(mongoHost, function(err, db){
   assert.equal(null, err);
   console.log('Connected to mongodb server');
   collectionDriver = new CollectionDriver(db);
 });
-
+*/
 // Update player stats
 setInterval(function(){
   console.log("setInterval: Updating player stats");
