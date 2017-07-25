@@ -8,6 +8,7 @@ var http = require('http'),
     CollectionDriver = require('./collectionDriver').CollectionDriver,
     mongoose = require('mongoose'),
     assert = require('assert'),
+    TelegramBot = require('node-telegram-bot-api')
     Lanaaja = require('./Lanaaja').Lanaaja;
 
 // import Lanaaja from './Lanaaja'
@@ -16,7 +17,7 @@ var http = require('http'),
 var app = express();
 app.use(bodyParser.urlencoded({ extended: true}));
 app.use(bodyParser.json());
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 3002);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
@@ -24,10 +25,16 @@ app.set('view engine', 'jade');
 var mongoHost = 'mongodb://localhost:27017/AssyBot';
 var collectionDriver;
 
-const token = "433183839:AAGG7rJinMHDU4ViYi5cxqKRMX4a8bRNspY";
+//Telegram
 
-var TelegramBot = require('node-telegram-bot-api'),
-    telegram = new TelegramBot(token, { polling: true });
+const token = "433183839:AAGG7rJinMHDU4ViYi5cxqKRMX4a8bRNspY";
+const url = 'https://arvala.eu';
+//bot which uses polling and getUpdates-method
+//var telegram = new TelegramBot(token, { polling: true });
+
+var telegram = new TelegramBot(token);
+
+telegram.setWebHook(`${url}/bot${token}`);
 
 MongoClient.connect(mongoHost, function(err, db){
   assert.equal(null, err);
@@ -337,6 +344,11 @@ app.use(function (req, res) {
 });
 
 // Start server
+/*
 http.createServer(app).listen(app.get('port'), function(){
     console.log('Express server listening on port ' + app.get('port'));
+});
+*/
+app.listen(app.get('port'), () => {
+  console.log('Express server is listening on ' + app.get('port'));
 });
