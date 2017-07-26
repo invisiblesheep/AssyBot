@@ -49,7 +49,32 @@ setInterval(function(){
     //TODO: IMPLEMENT
 }, 5 * 60000);
 
+function renderColumns(food, sleep, es, frustration, lanpower){
+    var foodColumn = renderColumn(food);
+    var sleepColumn = renderColumn(sleep);
+    var esColumn = renderColumn(es);
+    var frustrationColumn = renderColumn(frustration);
+    var lanpowerColumn = renderColumn(lanpower);
+    var columns = "\nFood:  "+foodColumn+"\nSleep: "+sleepColumn+"\nES:    "+esColumn+"\nFuck:  "+frustrationColumn+"\nLP:    "+lanpowerColumn;
+    return columns;
+}
 
+function renderColumn(value){
+    var num = Math.floor(value/6.7);
+    //console.log(num);
+    var column = "";
+    for(count = 0; count < num; count++){
+        column= column.concat("=");
+        //console.log(column);
+    }
+    column = column.concat("|");
+    //console.log(column);
+    for(count = 0; count < 14-num; count++){
+        column= column.concat("=");
+        //console.log(column);
+    }
+    return "["+column+"]";
+}
 
 
 // Bot stuff
@@ -82,8 +107,9 @@ telegram.onText(/\/statusMe/, (message) => {
                     element.vitutus = 100.0;
                     lanpoweri = 0.0;
                 }
-
+                var stats = renderColumns(element.fuudi, element.uni, 7, element.vitutus, element.lanpoweri)
                 telegram.sendMessage(message.chat.id, `User ${element.name} \nFood: ${element.fuudi} \nVitutus: ${element.vitutus} \nLANPOWER: ${lanpoweri}`);
+                //telegram.sendMessage(message.chat.id, `User ${element.name} \nFood: ${element.fuudi} \nVitutus: ${element.vitutus} \nLANPOWER: ${lanpoweri}`);
                 // telegram.sendMessage(message.chat.id, `User ${element.name} \nFood: ${element.fuudi}`);
             }
         });
@@ -253,112 +279,11 @@ app.post(`/bot${token}`, (req, res) => {
   telegram.processUpdate(req.body);
   res.sendStatus(200);
 });
-/*
-app.listen(app.get('port'), () => {
-  console.log('Express server is listening on ' + app.get('port'));
-});
-*/
+
 var port = 3002;
 app.listen(port, () => {
   console.log(`Express server is listening on ${port}`);
 });
 
-/* <---- COMMENTING OUT ALL ROUTING
-// Routes
 
-app.get('/bot', function(req, res) {
-    //TODO: IMPLEMENT
-    res.send('<html><body><h1>BotStuff</h1></body></html>');
-});
-
-// app.get('/:collection', function(req, res) {
-//    var params = req.params;
-//    console.log('findAll in ' + params.collection);
-//    collectionDriver.findAll(req.params.collection, function(error, objs) {
-//     	  if (error) { res.send(400, error); }
-// 	      else {
-// 	          res.set('Content-Type','application/json');
-//                   res.send(200, objs);
-//          }
-//    	});
-// });
-
-// app.get('/:collection/:entity', function(req, res) {
-//    var params = req.params;
-//    var entity = params.entity;
-//    var collection = params.collection;
-//    if (entity) {
-//        collectionDriver.get(collection, entity, function(error, objs) {
-//           if (error) { res.send(400, error); }
-//           else {
-//             res.set('Content-Type','application/json');
-//             res.send(200, objs); }
-//        });
-//    } else {
-//       res.send(400, {error: 'bad url', url: req.url});
-//    }
-// });
-
-app.post('/bot', function(req, res) {
-    var object = req.body;
-    var collection = "Bot1";
-    console.log('save in ' + req.params.collection);
-    collectionDriver.save(collection, object, function(err,docs) {
-          if (err) { res.send(400, err); }
-          else {
-            res.set('Content-Type','application/json');
-            res.send(201, docs); }
-     });
-     // collectionDriver.save("LogBase", object, function(err,docs) {
-     //       if (err) { console.log('error occured while saving to LogBase'); }
-     //       else { console.log('saved to LogBase'); }
-     //  });
-});
-
-app.put('/bot/:entity', function(req, res) {
-    var params = req.params;
-    var entity = params.entity;
-    var collection = "bot";
-    if (entity) {
-       collectionDriver.update(collection, req.body, entity, function(error, objs) {
-          if (error) { res.send(400, error); }
-          else {
-            res.set('Content-Type','application/json');
-            res.send(200, objs); }
-       });
-   } else {
-       var error = { "message" : "Cannot PUT a whole collection" };
-       res.send(400, error);
-   }
-
-   // var object = req.body;
-   // collectionDriver.save("LogBase", object, function(err,docs) {
-   //       if (err) { console.log('error occured while saving to LogBase'); }
-   //       else { console.log('saved to LogBase'); }
-   //  });
-});
-
-app.delete('/:collection/:entity', function(req, res) {
-    var params = req.params;
-    var entity = params.entity;
-    var collection = params.collection;
-    if (entity) {
-       collectionDriver.delete(collection, entity, function(error, objs) {
-          if (error) { res.send(400, error); }
-          else { res.send(200, objs); }
-       });
-   } else {
-       var error = { "message" : "Cannot DELETE a whole collection" };
-       res.send(400, error);
-   }
-});
-
-
-app.get('/', function (req, res) {
-    res.send('<html><body><h1>AssyBot</h1></body></html>');
-});
-app.use(function (req, res) {
-    res.render('404', {url:req.url});
-});
-*/ //<---- COMMENTING OUT ALL ROUTING
 
