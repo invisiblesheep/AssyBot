@@ -4,8 +4,8 @@ var http = require('http'),
     bodyParser = require('body-parser'),
     path = require('path'),
     //MongoClient = require('mongodb').MongoClient,
-    Server = require('mongodb').Server,
-    CollectionDriver = require('./collectionDriver').CollectionDriver,
+    //Server = require('mongodb').Server,
+    //CollectionDriver = require('./collectionDriver').CollectionDriver,
     //mongoose = require('mongoose'),
     assert = require('assert'),
     TelegramBot = require('node-telegram-bot-api')
@@ -55,6 +55,16 @@ setInterval(function(){
 // Bot stuff
 // var testiPelaaja = new Lanaaja("Testilanaaja");
 var lanaajat = [];
+
+
+telegram.onText(/\/testing/, (message) => {
+	telegram.sendMessage(message.chat.id, "webhook comms testing");
+});
+
+
+
+
+
 
 telegram.onText(/\/statusMe/, (message) => {
     const name = message.from.username;
@@ -349,6 +359,16 @@ http.createServer(app).listen(app.get('port'), function(){
     console.log('Express server listening on port ' + app.get('port'));
 });
 */
+app.post(`/bot${token}`, (req, res) => {
+  telegram.processUpdate(req.body);
+  res.sendStatus(200);
+});
+/*
 app.listen(app.get('port'), () => {
   console.log('Express server is listening on ' + app.get('port'));
+});
+*/
+var port = 3002;
+app.listen(port, () => {
+  console.log(`Express server is listening on ${port}`);
 });
