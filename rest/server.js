@@ -108,7 +108,7 @@ telegram.onText(/\/statusMe/, (message) => {
                     lanpoweri = 0.0;
                 }
                 var stats = renderColumns(element.fuudi, element.uni, 7, element.vitutus, element.lanpoweri)
-                telegram.sendMessage(message.chat.id, `User ${element.name} \nFood: ${element.fuudi} \nVitutus: ${element.vitutus} \nLANPOWER: ${lanpoweri}`);
+                telegram.sendMessage(message.chat.id, `User ${element.name}${stats}`);
                 //telegram.sendMessage(message.chat.id, `User ${element.name} \nFood: ${element.fuudi} \nVitutus: ${element.vitutus} \nLANPOWER: ${lanpoweri}`);
                 // telegram.sendMessage(message.chat.id, `User ${element.name} \nFood: ${element.fuudi}`);
             }
