@@ -242,27 +242,35 @@ telegram.on('polling_error', (error) => {
 });
 
 
+// Start server
+/*
+http.createServer(app).listen(app.get('port'), function(){
+    console.log('Express server listening on port ' + app.get('port'));
+});
+*/
 
+app.post(`/bot${token}`, (req, res) => {
+  telegram.processUpdate(req.body);
+  res.sendStatus(200);
+});
+/*
+app.listen(app.get('port'), () => {
+  console.log('Express server is listening on ' + app.get('port'));
+});
+*/
+var port = 3002;
+app.listen(port, () => {
+  console.log(`Express server is listening on ${port}`);
+});
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+/* <---- COMMENTING OUT ALL ROUTING
 // Routes
 
 app.get('/bot', function(req, res) {
     //TODO: IMPLEMENT
     res.send('<html><body><h1>BotStuff</h1></body></html>');
 });
+
 // app.get('/:collection', function(req, res) {
 //    var params = req.params;
 //    console.log('findAll in ' + params.collection);
@@ -329,7 +337,7 @@ app.put('/bot/:entity', function(req, res) {
    //       else { console.log('saved to LogBase'); }
    //  });
 });
-/*
+
 app.delete('/:collection/:entity', function(req, res) {
     var params = req.params;
     var entity = params.entity;
@@ -344,7 +352,7 @@ app.delete('/:collection/:entity', function(req, res) {
        res.send(400, error);
    }
 });
-*/
+
 
 app.get('/', function (req, res) {
     res.send('<html><body><h1>AssyBot</h1></body></html>');
@@ -352,23 +360,5 @@ app.get('/', function (req, res) {
 app.use(function (req, res) {
     res.render('404', {url:req.url});
 });
+*/ //<---- COMMENTING OUT ALL ROUTING
 
-// Start server
-/*
-http.createServer(app).listen(app.get('port'), function(){
-    console.log('Express server listening on port ' + app.get('port'));
-});
-*/
-app.post(`/bot${token}`, (req, res) => {
-  telegram.processUpdate(req.body);
-  res.sendStatus(200);
-});
-/*
-app.listen(app.get('port'), () => {
-  console.log('Express server is listening on ' + app.get('port'));
-});
-*/
-var port = 3002;
-app.listen(port, () => {
-  console.log(`Express server is listening on ${port}`);
-});
