@@ -3,11 +3,12 @@ var http = require('http'),
     express = require('express'),
     bodyParser = require('body-parser'),
     path = require('path'),
-    MongoClient = require('mongodb').MongoClient,
-    Server = require('mongodb').Server,
-    CollectionDriver = require('./collectionDriver').CollectionDriver,
-    mongoose = require('mongoose'),
+    //MongoClient = require('mongodb').MongoClient,
+    //Server = require('mongodb').Server,
+    //CollectionDriver = require('./collectionDriver').CollectionDriver,
+    //mongoose = require('mongoose'),
     assert = require('assert'),
+    TelegramBot = require('node-telegram-bot-api')
     Lanaaja = require('./Lanaaja').Lanaaja;
 
 // import Lanaaja from './Lanaaja'
@@ -16,25 +17,31 @@ var http = require('http'),
 var app = express();
 app.use(bodyParser.urlencoded({ extended: true}));
 app.use(bodyParser.json());
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 3002);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-//MongoDB
+/*//MongoDB
 var mongoHost = 'mongodb://localhost:27017/AssyBot';
 var collectionDriver;
+*/
+//Telegram
 
 const token = "433183839:AAGG7rJinMHDU4ViYi5cxqKRMX4a8bRNspY";
+const url = 'https://arvala.eu';
+//bot which uses polling and getUpdates-method
+//var telegram = new TelegramBot(token, { polling: true });
 
-var TelegramBot = require('node-telegram-bot-api'),
-    telegram = new TelegramBot(token, { polling: true });
+var telegram = new TelegramBot(token);
 
+telegram.setWebHook(`${url}/bot${token}`);
+/*
 MongoClient.connect(mongoHost, function(err, db){
   assert.equal(null, err);
   console.log('Connected to mongodb server');
   collectionDriver = new CollectionDriver(db);
 });
-
+*/
 // Update player stats
 setInterval(function(){
   console.log("setInterval: Updating player stats");
@@ -42,12 +49,47 @@ setInterval(function(){
     //TODO: IMPLEMENT
 }, 5 * 60000);
 
+function renderColumns(food, sleep, es, frustration, lanpower){
+    var foodColumn = renderColumn(food);
+    var sleepColumn = renderColumn(sleep);
+    var esColumn = renderColumn(es);
+    var frustrationColumn = renderColumn(frustration);
+    var lanpowerColumn = renderColumn(lanpower);
+    var columns = "\nFood:  "+foodColumn+"\nSleep: "+sleepColumn+"\nES:    "+esColumn+"\nFuck:  "+frustrationColumn+"\nLP:    "+lanpowerColumn;
+    return columns;
+}
 
+function renderColumn(value){
+    var num = Math.floor(value/6.7);
+    //console.log(num);
+    var column = "";
+    for(count = 0; count < num; count++){
+        column= column.concat("=");
+        //console.log(column);
+    }
+    column = column.concat("|");
+    //console.log(column);
+    for(count = 0; count < 14-num; count++){
+        column= column.concat("=");
+        //console.log(column);
+    }
+    return "["+column+"]";
+}
 
 
 // Bot stuff
 // var testiPelaaja = new Lanaaja("Testilanaaja");
 var lanaajat = [];
+
+
+telegram.onText(/\/testing/, (message) => {
+	telegram.sendMessage(message.chat.id, "webhook comms testing");
+});
+
+
+
+
+
 
 telegram.onText(/\/statusMe/, (message) => {
     const name = message.from.username;
@@ -65,8 +107,9 @@ telegram.onText(/\/statusMe/, (message) => {
                     element.vitutus = 100.0;
                     lanpoweri = 0.0;
                 }
-
-                telegram.sendMessage(message.chat.id, `User ${element.name} \nFood: ${element.fuudi} \nVitutus: ${element.vitutus} \nLANPOWER: ${lanpoweri}`);
+                var stats = renderColumns(element.fuudi, element.uni, 7, element.vitutus, element.lanpoweri)
+                telegram.sendMessage(message.chat.id, `User ${element.name}${stats}`);
+                //telegram.sendMessage(message.chat.id, `User ${element.name} \nFood: ${element.fuudi} \nVitutus: ${element.vitutus} \nLANPOWER: ${lanpoweri}`);
                 // telegram.sendMessage(message.chat.id, `User ${element.name} \nFood: ${element.fuudi}`);
             }
         });
@@ -225,118 +268,22 @@ telegram.on('polling_error', (error) => {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Routes
-
-app.get('/bot', function(req, res) {
-    //TODO: IMPLEMENT
-    res.send('<html><body><h1>BotStuff</h1></body></html>');
-});
-// app.get('/:collection', function(req, res) {
-//    var params = req.params;
-//    console.log('findAll in ' + params.collection);
-//    collectionDriver.findAll(req.params.collection, function(error, objs) {
-//     	  if (error) { res.send(400, error); }
-// 	      else {
-// 	          res.set('Content-Type','application/json');
-//                   res.send(200, objs);
-//          }
-//    	});
-// });
-
-// app.get('/:collection/:entity', function(req, res) {
-//    var params = req.params;
-//    var entity = params.entity;
-//    var collection = params.collection;
-//    if (entity) {
-//        collectionDriver.get(collection, entity, function(error, objs) {
-//           if (error) { res.send(400, error); }
-//           else {
-//             res.set('Content-Type','application/json');
-//             res.send(200, objs); }
-//        });
-//    } else {
-//       res.send(400, {error: 'bad url', url: req.url});
-//    }
-// });
-
-app.post('/bot', function(req, res) {
-    var object = req.body;
-    var collection = "Bot1";
-    console.log('save in ' + req.params.collection);
-    collectionDriver.save(collection, object, function(err,docs) {
-          if (err) { res.send(400, err); }
-          else {
-            res.set('Content-Type','application/json');
-            res.send(201, docs); }
-     });
-     // collectionDriver.save("LogBase", object, function(err,docs) {
-     //       if (err) { console.log('error occured while saving to LogBase'); }
-     //       else { console.log('saved to LogBase'); }
-     //  });
-});
-
-app.put('/bot/:entity', function(req, res) {
-    var params = req.params;
-    var entity = params.entity;
-    var collection = "bot";
-    if (entity) {
-       collectionDriver.update(collection, req.body, entity, function(error, objs) {
-          if (error) { res.send(400, error); }
-          else {
-            res.set('Content-Type','application/json');
-            res.send(200, objs); }
-       });
-   } else {
-       var error = { "message" : "Cannot PUT a whole collection" };
-       res.send(400, error);
-   }
-
-   // var object = req.body;
-   // collectionDriver.save("LogBase", object, function(err,docs) {
-   //       if (err) { console.log('error occured while saving to LogBase'); }
-   //       else { console.log('saved to LogBase'); }
-   //  });
-});
-/*
-app.delete('/:collection/:entity', function(req, res) {
-    var params = req.params;
-    var entity = params.entity;
-    var collection = params.collection;
-    if (entity) {
-       collectionDriver.delete(collection, entity, function(error, objs) {
-          if (error) { res.send(400, error); }
-          else { res.send(200, objs); }
-       });
-   } else {
-       var error = { "message" : "Cannot DELETE a whole collection" };
-       res.send(400, error);
-   }
-});
-*/
-
-app.get('/', function (req, res) {
-    res.send('<html><body><h1>AssyBot</h1></body></html>');
-});
-app.use(function (req, res) {
-    res.render('404', {url:req.url});
-});
-
 // Start server
+/*
 http.createServer(app).listen(app.get('port'), function(){
     console.log('Express server listening on port ' + app.get('port'));
 });
+*/
+
+app.post(`/bot${token}`, (req, res) => {
+  telegram.processUpdate(req.body);
+  res.sendStatus(200);
+});
+
+var port = 3002;
+app.listen(port, () => {
+  console.log(`Express server is listening on ${port}`);
+});
+
+
+
