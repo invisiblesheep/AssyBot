@@ -8,7 +8,7 @@ var http = require('http'),
     //CollectionDriver = require('./collectionDriver').CollectionDriver,
     //mongoose = require('mongoose'),
     assert = require('assert'),
-    TelegramBot = require('node-telegram-bot-api')
+    TelegramBot = require('node-telegram-bot-api'),
     Lanaaja = require('./Lanaaja').Lanaaja;
 
 // import Lanaaja from './Lanaaja'
@@ -17,7 +17,7 @@ var http = require('http'),
 var app = express();
 app.use(bodyParser.urlencoded({ extended: true}));
 app.use(bodyParser.json());
-app.set('port', process.env.PORT || 3002);
+app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
@@ -30,11 +30,11 @@ var collectionDriver;
 const token = "433183839:AAGG7rJinMHDU4ViYi5cxqKRMX4a8bRNspY";
 const url = 'https://arvala.eu';
 //bot which uses polling and getUpdates-method
-//var telegram = new TelegramBot(token, { polling: true });
+var telegram = new TelegramBot(token, { polling: true });
 
-var telegram = new TelegramBot(token);
+// var telegram = new TelegramBot(token);
 
-telegram.setWebHook(`${url}/bot${token}`);
+// telegram.setWebHook(`${url}/bot${token}`);
 /*
 MongoClient.connect(mongoHost, function(err, db){
   assert.equal(null, err);
@@ -50,13 +50,14 @@ setInterval(function(){
 }, 5 * 60000);
 
 function renderColumns(food, sleep, es, frustration, lanpower){
-    var foodColumn = renderColumn(food);
-    var sleepColumn = renderColumn(sleep);
-    var esColumn = renderColumn(es);
-    var frustrationColumn = renderColumn(frustration);
-    var lanpowerColumn = renderColumn(lanpower);
-    var columns = "\nFood:  "+foodColumn+"\nSleep: "+sleepColumn+"\nES:    "+esColumn+"\nFuck:  "+frustrationColumn+"\nLP:    "+lanpowerColumn;
-    return columns;
+    let foodColumn = renderColumn(food);
+    let sleepColumn = renderColumn(sleep);
+    let esColumn = renderColumn(es);
+    let frustrationColumn = renderColumn(frustration);
+    let lanpowerColumn = renderColumn(lanpower);
+    // var columns = "\nFood:  " + foodColumn + "\nSleep: "+sleepColumn+"\nES:    "+esColumn+"\nFuck:  "+frustrationColumn+"\nLP:    "+lanpowerColumn;
+    return `\nFood:  ${foodColumn} ${food}%\nSleep ${sleepColumn} ${sleep}%\nES:    ${esColumn} ${es}\nFuck:  ${frustrationColumn} ${frustration}%\nLP:   ${lanpowerColumn} ${lanpower}%`
+    // return columns;
 }
 
 function renderColumn(value){
@@ -97,20 +98,19 @@ telegram.onText(/\/statusMe/, (message) => {
     if (lanaajat.length === 0) {
         telegram.sendMessage(message.chat.id, "The current user is not initialized");
     } else {
-        lanaajat.forEach(function(element) {
-            console.log(element);
-            if (element.name === name) {
-                if (element.uni > 0 && element.fuudi > 0) {
-                    element.vitutus = ((100.0 - element.uni) + (100.0 - element.fuudi) + element.saastaisuus) / 3;
-                    lanpoweri = ((0.8 * element.uni) + (1.2 * element.fuudi) + (100.0 - element.vitutus)) / 3;
+        lanaajat.forEach(function(lanaaja) {
+            if (lanaaja.name === name) {
+                if (lanaaja.uni > 0 && lanaaja.fuudi > 0) {
+                    lanaaja.vitutus1 = (((100.0 - lanaaja.uni) + (100.0 - lanaaja.fuudi) + lanaaja.saastaisuus) / 3) + (0.5 * lanaaja.vitutus2);
+                    lanpoweri = ((0.8 * lanaaja.uni) + (1.2 * lanaaja.fuudi) + (100.0 - lanaaja.vitutus1)) / 3;
                 } else {
-                    element.vitutus = 100.0;
+                    lanaaja.vitutus1 = 100.0;
                     lanpoweri = 0.0;
                 }
-                var stats = renderColumns(element.fuudi, element.uni, 7, element.vitutus, element.lanpoweri)
-                telegram.sendMessage(message.chat.id, `User ${element.name}${stats}`);
-                //telegram.sendMessage(message.chat.id, `User ${element.name} \nFood: ${element.fuudi} \nVitutus: ${element.vitutus} \nLANPOWER: ${lanpoweri}`);
-                // telegram.sendMessage(message.chat.id, `User ${element.name} \nFood: ${element.fuudi}`);
+                var stats = renderColumns(lanaaja.fuudi, lanaaja.uni, lanaaja.es, lanaaja.vitutus1, lanpoweri);
+                telegram.sendMessage(message.chat.id, `User ${lanaaja.name}${stats}`);
+                //telegram.sendMessage(message.chat.id, `User ${lanaaja.name} \nFood: ${lanaaja.fuudi} \nVitutus: ${lanaaja.vitutus} \nLANPOWER: ${lanpoweri}`);
+                // telegram.sendMessage(message.chat.id, `User ${lanaaja.name} \nFood: ${lanaaja.fuudi}`);
             }
         });
     }
@@ -125,8 +125,8 @@ telegram.onText(/\/statusAll/, (message) => {
     if (lanaajat.length === 0) {
         telegram.sendMessage(message.chat.id, "No lanaaja in the game :(");
     } else {
-        lanaajat.forEach(function(element) {
-            telegram.sendMessage(message.chat.id, `User ${element.name} \nFood: ${element.fuudi}`);
+        lanaajat.forEach(function(lanaaja) {
+            telegram.sendMessage(message.chat.id, `User ${lanaaja.name} \nFood: ${lanaaja.fuudi}`);
         });
     }
 });
@@ -158,15 +158,15 @@ telegram.onText(/\/addUser/, (message) => {
 //     // telegram.sendMessage(message.chat.id, `Hello again,  ${name}`);
 // });
 
-telegram.onText(/\/eatFuudi/, (message) => {
+telegram.onText(/\/eatFood/, (message) => {
     const name = message.from.username;
     if (lanaajat.length === 0) {
         telegram.sendMessage(message.chat.id, "The current user is not initialized");
     } else {
-        lanaajat.forEach(function(element) {
-            if (element.name === name) {
-                element.fuudi = 100;
-                telegram.sendMessage(message.chat.id, `User ${element.name} just ate!`);
+        lanaajat.forEach(function(lanaaja) {
+            if (lanaaja.name === name) {
+                lanaaja.fuudi = 100;
+                telegram.sendMessage(message.chat.id, `User ${lanaaja.name} just ate!`);
             }
         });
     }
@@ -177,11 +177,11 @@ telegram.onText(/\/sleep/, (message) => {
     if (lanaajat.length === 0) {
         telegram.sendMessage(message.chat.id, "The current user is not initialized");
     } else {
-        lanaajat.forEach(function(element) {
-            console.log(element);
-            if (element.name === name) {
-                element.uni = 100;
-                telegram.sendMessage(message.chat.id, `User ${element.name} just woke up!`);
+        lanaajat.forEach(function(lanaaja) {
+            console.log(lanaaja);
+            if (lanaaja.name === name) {
+                lanaaja.uni = 100;
+                telegram.sendMessage(message.chat.id, `User ${lanaaja.name} just woke up!`);
             }
         });
     }
@@ -192,15 +192,15 @@ telegram.onText(/\/drinkES/, (message) => {
     if (lanaajat.length === 0) {
         telegram.sendMessage(message.chat.id, "The current user is not initialized");
     } else {
-        lanaajat.forEach(function(element) {
-            console.log(element);
-            if (element.name === name) {
-                if (element.es === 0) {
-                    telegram.sendMessage(message.chat.id, `User ${element.name} has no more ES!!!`);
+        lanaajat.forEach(function(lanaaja) {
+            console.log(lanaaja);
+            if (lanaaja.name === name) {
+                if (lanaaja.es === 0) {
+                    telegram.sendMessage(message.chat.id, `User ${lanaaja.name} has no more ES!!!`);
                 } else {
-                    element.uni += element.esh;
-                    element.esh = element.esh - (0.3 * element.esh);
-                    element.es -= 1;
+                    lanaaja.uni += lanaaja.esh;
+                    lanaaja.esh = lanaaja.esh - (0.3 * lanaaja.esh);
+                    lanaaja.es -= 1;
                     telegram.sendMessage(message.chat.id, `PÄRINÄ PÄÄLLE`);
                 }
             }
@@ -215,10 +215,10 @@ telegram.onText(/\/stashES (\b\d+\b)/, (message, match) => {
     if (lanaajat.length === 0) {
         telegram.sendMessage(message.chat.id, "The current user is not initialized");
     } else {
-        lanaajat.forEach(function (element) {
-            console.log(element);
-            if (element.name === name) {
-                element.es += parseInt(match[1]);
+        lanaajat.forEach(function (lanaaja) {
+            console.log(lanaaja);
+            if (lanaaja.name === name) {
+                lanaaja.es += parseInt(match[1]);
                 telegram.sendMessage(message.chat.id, `${match[1]} EEÄSSÄÄ GOT`);
             }
         });
@@ -230,17 +230,17 @@ telegram.onText(/\/eatMässy/, (message) => {
     if (lanaajat.length === 0) {
         telegram.sendMessage(message.chat.id, "The current user is not initialized");
     } else {
-        lanaajat.forEach(function(element) {
-            console.log(element);
-            if (element.name === name) {
-                if (element.massy === 0) {
-                    telegram.sendMessage(message.chat.id, `User ${element.name} has no more MÄSSY!!!`);
+        lanaajat.forEach(function(lanaaja) {
+            console.log(lanaaja);
+            if (lanaaja.name === name) {
+                if (lanaaja.massy === 0) {
+                    telegram.sendMessage(message.chat.id, `User ${lanaaja.name} has no more MÄSSY!!!`);
                 } else {
-                    if (element.fuudi < 100.0) {
-                        element.fuudi += element.massyh;
+                    if (lanaaja.fuudi < 100.0) {
+                        lanaaja.fuudi += lanaaja.massyh;
                     }
-                    element.massyh = element.massyh - (0.3 * element.massyh);
-                    element.massy -= 1;
+                    lanaaja.massyh = lanaaja.massyh - (0.3 * lanaaja.massyh);
+                    lanaaja.massy -= 1;
                     telegram.sendMessage(message.chat.id, `HELEVETIN HYVIÄ MAKKAROITA`);
                 }
             }
@@ -253,15 +253,72 @@ telegram.onText(/\/stashMässy (\b\d+\b)/, (message, match) => {
     if (lanaajat.length === 0) {
         telegram.sendMessage(message.chat.id, "The current user is not initialized");
     } else {
-        lanaajat.forEach(function (element) {
-            console.log(element);
-            if (element.name === name) {
-                element.massy += parseInt(match[1]);
+        lanaajat.forEach(function (lanaaja) {
+            console.log(lanaaja);
+            if (lanaaja.name === name) {
+                lanaaja.massy += parseInt(match[1]);
                 telegram.sendMessage(message.chat.id, `${match[1]} MÄSSYY GOT`);
             }
         });
     }
 });
+
+telegram.onText(/\/vituttaa/, (message, match) => {
+    const name = message.from.username;
+    if (lanaajat.length === 0) {
+        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+    } else {
+        lanaajat.forEach(function (lanaaja) {
+            console.log(lanaaja);
+            if (lanaaja.name === name) {
+                lanaaja.vitutus2 += 10.0;
+                telegram.sendMessage(message.chat.id, `paska peli`);
+            }
+        });
+    }
+});
+
+telegram.onText(/\/VITUTTAA/, (message, match) => {
+    const name = message.from.username;
+    if (lanaajat.length === 0) {
+        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+    } else {
+        lanaajat.forEach(function (lanaaja) {
+            console.log(lanaaja);
+            if (lanaaja.name === name) {
+                lanaaja.vitutus2 += 20.0;
+                telegram.sendMessage(message.chat.id, `VITUN JONNET`);
+            }
+        });
+    }
+});
+
+telegram.onText(/\/resetUser/, (message, match) => {
+    const name = message.from.username;
+    if (lanaajat.length === 0) {
+        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+    } else {
+        lanaajat.forEach(function (lanaaja) {
+            console.log(lanaaja);
+            if (lanaaja.name === name) {
+                resetStats(lanaaja)
+                telegram.sendMessage(message.chat.id, `${lanaaja.name}'s stats have been reset!`);
+            }
+        });
+    }
+});
+
+function resetStats(lanaaja) {
+    lanaaja.uni = 100.0;
+    lanaaja.es  = 0;
+    lanaaja.esh = 30.0;
+    lanaaja.fuudi = 100.0;
+    lanaaja.massy = 0;
+    lanaaja.massyh = 10.0;
+    lanaaja.vitutus1 = 0.0;
+    lanaaja.vitutus2 = 0.0;
+    lanaaja.saastaisuus = 0.0;
+}
 
 telegram.on('polling_error', (error) => {
     console.log(error.code);  // => 'EFATAL'
@@ -269,21 +326,21 @@ telegram.on('polling_error', (error) => {
 
 
 // Start server
-/*
+
 http.createServer(app).listen(app.get('port'), function(){
     console.log('Express server listening on port ' + app.get('port'));
 });
-*/
 
-app.post(`/bot${token}`, (req, res) => {
-  telegram.processUpdate(req.body);
-  res.sendStatus(200);
-});
 
-var port = 3002;
-app.listen(port, () => {
-  console.log(`Express server is listening on ${port}`);
-});
+// app.post(`/bot${token}`, (req, res) => {
+//   telegram.processUpdate(req.body);
+//   res.sendStatus(200);
+// });
+
+// var port = 3002;
+// app.listen(port, () => {
+//   console.log(`Express server is listening on ${port}`);
+// });
 
 
 
