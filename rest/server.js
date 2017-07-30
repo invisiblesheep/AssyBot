@@ -55,6 +55,7 @@ client.on("ready", () => {
 
 client.on("message", (message) => {
 
+    console.log(message.content);
     if (message.content.startsWith("/addUser")) {
         message.channel.send(addUser(message.author.username));
     } else {
@@ -86,8 +87,22 @@ client.on("message", (message) => {
                     message.channel.send(drinkES(lanaaja.name));
                 }
 
+                if (message.content.startsWith("/stashES")) {
+                    let tokens = message.content.split(' ');
+                    let amount = parseInt(tokens[1]);
+                    console.log(amount);
+                    message.channel.send(stashES(lanaaja.name, amount));
+                }
+
                 if (message.content.startsWith("/eatMässy")) {
                     message.channel.send(eatMassy(lanaaja.name));
+                }
+
+                if (message.content.startsWith("/stashMässy")) {
+                    let tokens = message.content.split(' ');
+                    let amount = parseInt(tokens[1]);
+                    console.log(amount);
+                    message.channel.send(stashMassy(lanaaja.name, amount));
                 }
 
                 if (message.content.startsWith("/vituttaa")) {
@@ -292,21 +307,29 @@ function drinkES(username) {
 }
 
 telegram.onText(/\/stashES (\b\d+\b)/, (message, match) => {
+    telegram.sendMessage(message.chat.id, stashES(message.from.username, parseInt(match[1])));
+});
 
-    console.log("STASHES");
-    const name = message.from.username;
+function stashES(username, amount) {
+    var result = "";
+
+    if (isNaN(amount)) {
+        return "Not a number.."
+    }
+
     if (lanaajat.length === 0) {
-        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+        result = "The current user is not initialized";
     } else {
-        lanaajat.forEach(function (lanaaja) {
-            console.log(lanaaja);
-            if (lanaaja.name === name) {
-                lanaaja.es += parseInt(match[1]);
-                telegram.sendMessage(message.chat.id, `${match[1]} EEÄSSÄÄ GOT`);
+        lanaajat.forEach(function(lanaaja) {
+            if (lanaaja.name === username) {
+                lanaaja.es += amount;
+                result = `${amount} EEÄSSÄÄ GOT`;
             }
         });
     }
-});
+
+    return result;
+}
 
 telegram.onText(/\/eatMässy/, (message) => {
     telegram.sendMessage(message.chat.id, eatMassy(message.from.username));
@@ -337,19 +360,29 @@ function eatMassy(username) {
 }
 
 telegram.onText(/\/stashMässy (\b\d+\b)/, (message, match) => {
-    const name = message.from.username;
+    telegram.sendMessage(message.chat.id, stashMassy(message.from.username, parseInt(match[1])));
+});
+
+function stashMassy(username, amount) {
+    var result = "";
+
+    if (isNaN(amount)) {
+        return "Not a number.."
+    }
+
     if (lanaajat.length === 0) {
-        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+        result = "The current user is not initialized";
     } else {
-        lanaajat.forEach(function (lanaaja) {
-            console.log(lanaaja);
-            if (lanaaja.name === name) {
-                lanaaja.massy += parseInt(match[1]);
-                telegram.sendMessage(message.chat.id, `${match[1]} MÄSSYY GOT`);
+        lanaajat.forEach(function(lanaaja) {
+            if (lanaaja.name === username) {
+                lanaaja.massy += amount;
+                result = `${amount} MÄSSYY GOT`;
             }
         });
     }
-});
+
+    return result;
+}
 
 telegram.onText(/\/vituttaa/, (message, match) => {
     telegram.sendMessage(message.chat.id, vituttaaVahan(message.from.username));
