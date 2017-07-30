@@ -11,8 +11,6 @@ var http = require('http'),
     TelegramBot = require('node-telegram-bot-api'),
     Lanaaja = require('./Lanaaja').Lanaaja;
 
-// import Lanaaja from './Lanaaja'
-
 //Express
 var app = express();
 app.use(bodyParser.urlencoded({ extended: true}));
@@ -45,9 +43,14 @@ MongoClient.connect(mongoHost, function(err, db){
 // Update player stats
 setInterval(function(){
   console.log("setInterval: Updating player stats");
-  // collectionDriver.deleteOld("FlagBase");
-    //TODO: IMPLEMENT
-}, 5 * 60000);
+    if (lanaajat.length === 0) {
+        lanaajat.forEach(function(lanaaja) {
+            lanaaja.fuudi > 0 ? lanaaja.fuudi -= 4.2 : null;
+            lanaaja.uni > 0 ? lanaaja.uni -= 1.4 : null;
+            lanaaja.saastaisuus > 0 ? lanaaja.saastaisuus += 1.05 : null;
+        });
+    }
+}, 15 * 60000);
 
 function renderColumns(food, sleep, es, frustration, lanpower){
     let foodColumn = renderColumn(food);
@@ -107,18 +110,11 @@ telegram.onText(/\/statusMe/, (message) => {
                     lanaaja.vitutus1 = 100.0;
                     lanpoweri = 0.0;
                 }
-                var stats = renderColumns(lanaaja.fuudi, lanaaja.uni, lanaaja.es, lanaaja.vitutus1, lanpoweri);
+                var stats = renderColumns(lanaaja.fuudi.toFixed(2), lanaaja.uni.toFixed(2), lanaaja.es.toFixed(2), lanaaja.vitutus1.toFixed(2), lanpoweri.toFixed(2));
                 telegram.sendMessage(message.chat.id, `User ${lanaaja.name}${stats}`);
-                //telegram.sendMessage(message.chat.id, `User ${lanaaja.name} \nFood: ${lanaaja.fuudi} \nVitutus: ${lanaaja.vitutus} \nLANPOWER: ${lanpoweri}`);
-                // telegram.sendMessage(message.chat.id, `User ${lanaaja.name} \nFood: ${lanaaja.fuudi}`);
             }
         });
     }
-
-
-    // console.log(message);
-    // telegram.sendMessage(message.chat.id, `Hello ${name} \nHello again,  ${name}`);
-    // telegram.sendMessage(message.chat.id, `Hello again,  ${name}`);
 });
 
 telegram.onText(/\/statusAll/, (message) => {
