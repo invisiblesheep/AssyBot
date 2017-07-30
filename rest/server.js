@@ -40,6 +40,54 @@ MongoClient.connect(mongoHost, function(err, db){
   collectionDriver = new CollectionDriver(db);
 });
 */
+
+
+const Discord = require("discord.js");
+const client = new Discord.Client();
+
+client.login("MzQxMjcwNzMxMzM1Nzk0Njk5.DF-p_Q.5Q5lzfvI0qxbPLHfw9wwfML4UXc");
+
+client.on("ready", () => {
+    console.log("I am ready!");
+});
+
+client.on("message", (message) => {
+
+    if (lanaajat.length === 0) {
+        message.channel.send("The current user is not initialized");
+    } else {
+
+
+        lanaajat.forEach(function(lanaaja) {
+            var exists = false;
+            if (lanaaja.name === message.author.username) {
+
+                exists = true;
+                if (message.content.startsWith("/statusMe")) {
+                    if (lanaaja.uni > 0 && lanaaja.fuudi > 0) {
+                        lanaaja.vitutus1 = (((100.0 - lanaaja.uni) + (100.0 - lanaaja.fuudi) + lanaaja.saastaisuus) / 3) + (0.5 * lanaaja.vitutus2);
+                        var lanpoweri = ((0.8 * lanaaja.uni) + (1.2 * lanaaja.fuudi) + (100.0 - lanaaja.vitutus1)) / 3;
+                    } else {
+                        lanaaja.vitutus1 = 100.0;
+                        var lanpoweri = 0.0;
+                    }
+                    let stats = renderColumns(lanaaja.fuudi.toFixed(0), lanaaja.uni.toFixed(0), lanaaja.es, lanaaja.vitutus1.toFixed(0), lanpoweri.toFixed(0), lanaaja.massy);
+                    message.channel.send(`User ${lanaaja.name}${stats}`)
+                }
+            }
+
+            // if (!exists) {
+            //     message.channel.send("The current user is not initialized")
+            // }
+        });
+    }
+    if (message.content.startsWith("ping")) {
+        console.log(message.author.username);
+        message.channel.send("AssyBot ready!");
+    }
+});
+
+
 // Update player stats
 setInterval(function(){
   console.log("setInterval: Updating player stats");
@@ -111,7 +159,7 @@ telegram.onText(/\/statusMe/, (message) => {
                     lanaaja.vitutus1 = 100.0;
                     lanpoweri = 0.0;
                 }
-                let stats = renderColumns(lanaaja.fuudi.toFixed(2), lanaaja.uni.toFixed(2), lanaaja.es, lanaaja.vitutus1.toFixed(2), lanpoweri.toFixed(2), lanaaja.massy);
+                let stats = renderColumns(lanaaja.fuudi.toFixed(0), lanaaja.uni.toFixed(0), lanaaja.es, lanaaja.vitutus1.toFixed(0), lanpoweri.toFixed(0), lanaaja.massy);
                 telegram.sendMessage(message.chat.id, `User ${lanaaja.name}${stats}`);
             }
         });
