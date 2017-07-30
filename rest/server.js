@@ -52,19 +52,20 @@ setInterval(function(){
     }
 }, 15 * 60000);
 
-function renderColumns(food, sleep, es, frustration, lanpower){
+function renderColumns(food, sleep, es, frustration, lanpower, massy){
     let foodColumn = renderColumn(food);
     let sleepColumn = renderColumn(sleep);
     let esColumn = renderColumn(es);
     let frustrationColumn = renderColumn(frustration);
     let lanpowerColumn = renderColumn(lanpower);
+    let massyColumn = renderColumn(massy);
     // var columns = "\nFood:  " + foodColumn + "\nSleep: "+sleepColumn+"\nES:    "+esColumn+"\nFuck:  "+frustrationColumn+"\nLP:    "+lanpowerColumn;
-    return `\nFood:  ${foodColumn} ${food}%\nSleep ${sleepColumn} ${sleep}%\nES:    ${esColumn} ${es}\nFuck:  ${frustrationColumn} ${frustration}%\nLP:   ${lanpowerColumn} ${lanpower}%`
+    return `\nFood:  ${foodColumn} ${food}%\nSleep ${sleepColumn} ${sleep}%\nES:    ${esColumn} ${es}\nMässy:   ${massyColumn} ${massy}\nFuck:  ${frustrationColumn} ${frustration}%\nLP:   ${lanpowerColumn} ${lanpower}%`
     // return columns;
 }
 
 function renderColumn(value){
-    var num = Math.floor(value/6.7);
+    var num = Math.floor(value/10);
     //console.log(num);
     var column = "";
     for(count = 0; count < num; count++){
@@ -73,7 +74,7 @@ function renderColumn(value){
     }
     column = column.concat("|");
     //console.log(column);
-    for(count = 0; count < 14-num; count++){
+    for(count = 0; count < 10-num; count++){
         column= column.concat("=");
         //console.log(column);
     }
@@ -97,7 +98,7 @@ telegram.onText(/\/testing/, (message) => {
 
 telegram.onText(/\/statusMe/, (message) => {
     const name = message.from.username;
-    var lanpoweri;
+    let lanpoweri;
     if (lanaajat.length === 0) {
         telegram.sendMessage(message.chat.id, "The current user is not initialized");
     } else {
@@ -110,7 +111,7 @@ telegram.onText(/\/statusMe/, (message) => {
                     lanaaja.vitutus1 = 100.0;
                     lanpoweri = 0.0;
                 }
-                var stats = renderColumns(lanaaja.fuudi.toFixed(2), lanaaja.uni.toFixed(2), lanaaja.es.toFixed(2), lanaaja.vitutus1.toFixed(2), lanpoweri.toFixed(2));
+                let stats = renderColumns(lanaaja.fuudi.toFixed(2), lanaaja.uni.toFixed(2), lanaaja.es, lanaaja.vitutus1.toFixed(2), lanpoweri.toFixed(2), lanaaja.massy);
                 telegram.sendMessage(message.chat.id, `User ${lanaaja.name}${stats}`);
             }
         });
