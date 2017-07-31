@@ -142,8 +142,8 @@ client.on("message", (message) => {
 setInterval(function(){
   console.log("setInterval: Updating player stats");
     decayUserStats();
-}, 10000);
-//15 * 60000
+}, 15 * 60000);
+
 function decayUserStats(){
     if (lanaajat.length > 0) {
         lanaajat.forEach(function(lanaaja) {
