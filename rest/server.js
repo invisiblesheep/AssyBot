@@ -112,6 +112,10 @@ client.on("message", (message) => {
                     message.channel.send(vituttaaHelvetisti(lanaaja.name));
                 }
 
+                if (message.content.startsWith("/teppoavituttaa")) {
+                    message.channel.send(teppoaVituttaa(lanaaja.name));
+                }
+
                 if (message.content.startsWith("/eivituta")) {
                     message.channel.send(eiVituta(lanaaja.name));
                 }
@@ -209,28 +213,9 @@ function renderColumn(value){
 
 
 // Bot stuff
-// var testiPelaaja = new Lanaaja("Testilanaaja");
-// var lanaajatLocked = false;
 var lanaajat = [];
 var telegramChatIds = new Map();
 var discordChatIds = new Map();
-
-// function getLanaajat() {
-//     while (true){
-//         if(!lanaajatLocked) {
-//             lanaajatLocked = true;
-//             return lanaajat;
-//         }
-//
-//         // setTimeout(function(){
-//         //     a=10;
-//         // },1000);
-//     }
-// }
-//
-// function unlockLanaajat(){
-//     lanaajatLocked = false;
-// }
 
 telegram.onText(/\/statusme/, (message) => {
     telegram.sendMessage(message.chat.id, statusMe(message.from.username));
@@ -280,16 +265,8 @@ function addUserTelegram(username, chatId) {
             }
         }
     }
-    // telegramChatIds.forEach(function(value, key, mapObj) {
-    //     console.log("forEach telegramChatIds");
-    //     console.log(value, key);
-    //     if (key === username) {
-    //         exists = true;
-    //     }
-    // });
 
     if (!exists) {
-
         telegramChatIds[username] = chatId;
         let newPlayer = new Lanaaja(username);
         lanaajat.push(newPlayer);
@@ -310,7 +287,6 @@ function addUserDiscord(username, chatId) {
     }
 
     if (!exists) {
-
         discordChatIds[username] = chatId;
         let newPlayer = new Lanaaja(username);
         lanaajat.push(newPlayer);
@@ -495,6 +471,26 @@ function vituttaaHelvetisti(username) {
             if (lanaaja.name === username) {
                 lanaaja.vitutus2 += 20.0;
                 result = `VITUN JONNET`;
+            }
+        });
+    }
+
+    return result;
+}
+
+telegram.onText(/\/teppoavituttaa/, (message) => {
+    telegram.sendMessage(message.chat.id, teppoaVituttaa(message.from.username));
+});
+
+function teppoaVituttaa(username) {
+    var result = "";
+    if (lanaajat.length === 0) {
+        result = "The current user is not initialized";
+    } else {
+        lanaajat.forEach(function(lanaaja) {
+            if (lanaaja.name === username) {
+                lanaaja.vitutus2 += 30.0;
+                result = `Nooh, tuon olisi voinut pelata paremmin ja käytin ultin liian aikasin..`;
             }
         });
     }
