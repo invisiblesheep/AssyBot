@@ -1,4 +1,4 @@
-ASSYSTATUSBOT TOIMINNALLINEN MÄÄRITTELY V 0.02
+ASSYSTATUSBOT TOIMINNALLINEN MÄÄRITTELY V 0.03
 ------------------------------------------
 
 Komennot:
@@ -105,3 +105,38 @@ Arttu:
 Väsymys [=====|=====] 50%
 ES [|==========] 0%
 Nälkä [==========|] 100%
+
+
+KOKOUS 31.7.2017
+----------------------
+Käyttäjälle "näkyvät" komennot:
+assytimer - Assembly 2017 countdown
+drinkes - Juo ES
+eatfood - Syö ruokaa
+eatmassy - Syö mässyä
+eivituta - Nyt ei vituta
+sauna - Käy saunassa
+sleep - Nuku
+stashes - Päivitä ES määrä
+stashmassy - Päivitä Mässymäärä
+statusall - Kaikkien status
+statusme - Oma status
+teppoavituttaa - NYT ON TEPPO VIHAINEN
+vituttaa - Nyt vähän vituttaa
+
+"Salaiset" komennot:
+VITUTTAA - VITTU KU VITUTTAA
+
+
+TODO:
+Tarkista ja päivitä vitutus- ja lanpower-algoritmit
+
+AssyTimer (Arttu)
+UI:n päivitys (Arttu)
+	*Telegram
+	*Discord
+
+Eroon "maagisista" numeroista (Tuomas)
+Warning message -systeemi (Tuomas)
+
+Syötä komennot telegramiin (DONED)
