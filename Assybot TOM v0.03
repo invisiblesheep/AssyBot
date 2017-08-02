@@ -140,3 +140,7 @@ Eroon "maagisista" numeroista (Tuomas)
 Warning message -systeemi (Tuomas) DONED
 
 Syötä komennot telegramiin (DONED)
+
+Serverin aloitus:
+
+PORT=8080 FOODDECAY=6.0 SLEEPDECAY=18.0 FILTHGAIN=24.0 ESGAIN=30.0 ESDIMINISH=03 DECAYINTERVAL=15.0 nodejs server.js
