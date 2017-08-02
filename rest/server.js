@@ -41,7 +41,6 @@ MongoClient.connect(mongoHost, function(err, db){
 });
 */
 
-
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
@@ -128,6 +127,10 @@ client.on("message", (message) => {
                     message.channel.send(resetStats(lanaaja.name));
                 }
 
+                if (message.content.startsWith("/help")) {
+                    message.channel.send(help());
+                }
+
             }
 
             // if (!exists) {
@@ -141,25 +144,153 @@ client.on("message", (message) => {
     }
 });
 
+const foodDecayHours = process.env.FOODDECAY || 6.0;
+const sleepDecayHours = process.env.SLEEPDECAY || 18.0;
+const filthGainHours = process.env.FILTHGAIN || 24.0;
+const esGainToSleep = process.env.ESGAIN || 30.0;
+const esDiminishingReturns = process.env.ESDIMINISH || 0.3;
+const decayIntervalInMinutes = process.env.DECAYINTERVAL || 15.0;
+const decayCountPerHour = 60.0 / decayIntervalInMinutes;
+
+const warningLevelLow = process.env.WARNINGLEVELLOW || 25.0;
+const warningLevelMed = process.env.WARNINGLEVELMED || 10.0;
+const warningLevelHigh = process.env.WARNINGLEVELHIGH || 5.0;
+
+const foodDecay = (100.0 / foodDecayHours) / decayCountPerHour;
+const sleepDecay = (100 / sleepDecayHours) / decayCountPerHour;
+const filthGain = (100 / filthGainHours) / decayCountPerHour;
 
 // Update player stats
 setInterval(function(){
   console.log("setInterval: Updating player stats");
     decayUserStats();
-}, 15 * 60000);
+}, decayIntervalInMinutes * 60000);
 
 function decayUserStats(){
     if (lanaajat.length > 0) {
         lanaajat.forEach(function(lanaaja) {
-            lanaaja.fuudi >= 4.2 ? lanaaja.fuudi -= 4.2 : lanaaja.fuudi = 0;
-            lanaaja.uni >= 1.4 ? lanaaja.uni -= 1.4 : lanaaja.uni = 0;
-            lanaaja.saastaisuus >= 1.05 ? lanaaja.saastaisuus += 1.05 : lanaaja.saastaisuus = 0;
-            // sendWarningMessage(`${lanaaja.name} is starving!`, lanaaja.name);
-            lanaaja.fuudi === 0 ? sendWarningMessage(`${lanaaja.name} is starving!`, lanaaja.name) : null;
-            lanaaja.uni === 0 ? sendWarningMessage(`${lanaaja.name} is dead tired!`, lanaaja.name) : null;
-            lanaaja.saastaisuus === 100 ? sendWarningMessage(`${lanaaja.name} is filthy as fuck!`, lanaaja.name) : null;
+            lanaaja.food >= foodDecay ? lanaaja.food -= foodDecay : lanaaja.food = 0;
+            lanaaja.sleep >= sleepDecay ? lanaaja.sleep -= sleepDecay : lanaaja.sleep = 0;
+            lanaaja.filth <= 100.0 - filthGain ? lanaaja.filth += filthGain : lanaaja.filth = 100.0;
+
+            checkFoodLevels(lanaaja);
+            checkSleepLevels(lanaaja);
+            checkFilthLevels(lanaaja);
         });
     }
+}
+
+// function checkLevelsOfAttribute(lanaaja, attr) {
+//     let attribute;
+//     let flag;
+//     if (attr === "food") {
+//         attribute = lanaaja.food
+//
+//     } else if (attr === "sleep") {
+//         attribute = lanaaja.sleep
+//     } else if (attr === "filth") {
+//         attribute = lanaaja.filth
+//     } else return;
+//
+//     if (attribute > warningLevelLow) {
+//         resetFoodFlags(lanaaja);
+//     } else if (attribute > warningLevelMed && attribute <= warningLevelLow && lanaaja.foodWarningFlagLow) {
+//         sendWarningMessage(`${lanaaja.name} food level at ${warningLevelLow}%!`, lanaaja.name);
+//         lanaaja.foodWarningFlagLow = true;
+//         lanaaja.foodWarningFlagMed = false;
+//         lanaaja.foodWarningFlagHigh = false;
+//     } else if (lanaaja.food > warningLevelHigh && lanaaja.food <= warningLevelMed && lanaaja.foodWarningFlagMed) {
+//         sendWarningMessage(`${lanaaja.name} food level at ${warningLevelMed}%!`, lanaaja.name);
+//         lanaaja.foodWarningFlagLow = true;
+//         lanaaja.foodWarningFlagMed = true;
+//         lanaaja.foodWarningFlagHigh = false;
+//     } else if (lanaaja.food >= 0 && lanaaja.food <= warningLevelHigh && lanaaja.foodWarningFlagHigh) {
+//         sendWarningMessage(`${lanaaja.name} food level at ${warningLevelHigh}%!`, lanaaja.name);
+//         lanaaja.foodWarningFlagLow = true;
+//         lanaaja.foodWarningFlagMed = true;
+//         lanaaja.foodWarningFlagHigh = true;
+//     }
+// }
+
+function checkFoodLevels(lanaaja) {
+    if (lanaaja.food > warningLevelLow) {
+        resetFoodFlags(lanaaja);
+    } else if (lanaaja.food > warningLevelMed && lanaaja.food <= warningLevelLow && !lanaaja.foodWarningFlagLow) {
+        sendWarningMessage(`${lanaaja.name} food level at ${warningLevelLow}%!`, lanaaja.name);
+        lanaaja.foodWarningFlagLow = true;
+        lanaaja.foodWarningFlagMed = false;
+        lanaaja.foodWarningFlagHigh = false;
+    } else if (lanaaja.food > warningLevelHigh && lanaaja.food <= warningLevelMed && !lanaaja.foodWarningFlagMed) {
+        sendWarningMessage(`${lanaaja.name} food level at ${warningLevelMed}%!`, lanaaja.name);
+        lanaaja.foodWarningFlagLow = true;
+        lanaaja.foodWarningFlagMed = true;
+        lanaaja.foodWarningFlagHigh = false;
+    } else if (lanaaja.food >= 0 && lanaaja.food <= warningLevelHigh && !lanaaja.foodWarningFlagHigh) {
+        sendWarningMessage(`${lanaaja.name} food level at ${warningLevelHigh}%!`, lanaaja.name);
+        lanaaja.foodWarningFlagLow = true;
+        lanaaja.foodWarningFlagMed = true;
+        lanaaja.foodWarningFlagHigh = true;
+    }
+}
+
+function checkSleepLevels(lanaaja) {
+    if (lanaaja.sleep > warningLevelLow) {
+        resetSleepFlags(lanaaja);
+    } else if (lanaaja.sleep > warningLevelMed && lanaaja.sleep <= warningLevelLow && !lanaaja.sleepWarningFlagLow) {
+        sendWarningMessage(`${lanaaja.name} sleep level at ${warningLevelLow}%!`, lanaaja.name);
+        lanaaja.sleepWarningFlagLow = true;
+        lanaaja.sleepWarningFlagMed = false;
+        lanaaja.sleepWarningFlagHigh = false;
+    } else if (lanaaja.sleep > warningLevelHigh && lanaaja.sleep <= warningLevelMed && !lanaaja.sleepWarningFlagMed) {
+        sendWarningMessage(`${lanaaja.name} sleep level at ${warningLevelMed}%!`, lanaaja.name);
+        lanaaja.sleepWarningFlagLow = true;
+        lanaaja.sleepWarningFlagMed = true;
+        lanaaja.sleepWarningFlagHigh = false;
+    } else if (lanaaja.sleep >= 0 && lanaaja.sleep <= warningLevelHigh && !lanaaja.sleepWarningFlagHigh) {
+        sendWarningMessage(`${lanaaja.name} sleep level at ${warningLevelHigh}%!`, lanaaja.name);
+        lanaaja.sleepWarningFlagLow = true;
+        lanaaja.sleepWarningFlagMed = true;
+        lanaaja.sleepWarningFlagHigh = true;
+    }
+}
+
+function checkFilthLevels(lanaaja) {
+    if (lanaaja.filth > warningLevelLow) {
+        resetFilthFlags(lanaaja);
+    } else if (lanaaja.filth > 80.0 && lanaaja.filth <= 50.0 && !lanaaja.filthWarningFlagLow) {
+        sendWarningMessage(`${lanaaja.name} filth level at ${warningLevelLow}%!`, lanaaja.name);
+        lanaaja.filthWarningFlagLow = true;
+        lanaaja.filthWarningFlagMed = false;
+        lanaaja.filthWarningFlagHigh = false;
+    } else if (lanaaja.filth > 95.0 && lanaaja.filth <= 80.0 && !lanaaja.filthWarningFlagMed) {
+        sendWarningMessage(`${lanaaja.name} filth level at ${warningLevelMed}%!`, lanaaja.name);
+        lanaaja.filthWarningFlagLow = true;
+        lanaaja.filthWarningFlagMed = true;
+        lanaaja.filthWarningFlagHigh = false;
+    } else if (lanaaja.filth >= 0 && lanaaja.filth <= 95.0 && !lanaaja.filthWarningFlagHigh) {
+        sendWarningMessage(`${lanaaja.name} filth level at ${warningLevelHigh}%!`, lanaaja.name);
+        lanaaja.filthWarningFlagLow = true;
+        lanaaja.filthWarningFlagMed = true;
+        lanaaja.filthWarningFlagHigh = true;
+    }
+}
+
+function resetFoodFlags(lanaaja) {
+    lanaaja.foodWarningFlagHigh = false;
+    lanaaja.foodWarningFlagMed = false;
+    lanaaja.foodWarningFlagLow = false;
+}
+
+function resetSleepFlags(lanaaja) {
+    lanaaja.sleepWarningFlagHigh = false;
+    lanaaja.sleepWarningFlagMed = false;
+    lanaaja.sleepWarningFlagLow = false;
+}
+
+function resetFilthFlags(lanaaja) {
+    lanaaja.filthWarningFlagHigh = false;
+    lanaaja.filthWarningFlagMed = false;
+    lanaaja.filthWarningFlagLow = false;
 }
 
 
@@ -182,15 +313,16 @@ function sendWarningMessage(message, username) {
     }
 }
 
-function renderColumns(food, sleep, es, frustration, lanpower, massy){
+function renderColumns(food, sleep, es, frustration, lanpower, massy, filth){
     let foodColumn = renderColumn(food);
     let sleepColumn = renderColumn(sleep);
     let esColumn = renderColumn(es > 100 ? 100 : es);
     let frustrationColumn = renderColumn(frustration);
     let lanpowerColumn = renderColumn(lanpower);
     let massyColumn = renderColumn(massy > 100 ? 100 : massy);
+    let filthColumn = renderColumn(filth);
     // var columns = "\nFood:  " + foodColumn + "\nSleep: "+sleepColumn+"\nES:    "+esColumn+"\nFuck:  "+frustrationColumn+"\nLP:    "+lanpowerColumn;
-    return `\nFood:  ${foodColumn} ${food}%\nSleep ${sleepColumn} ${sleep}%\nES:    ${esColumn} ${es}\nMässy:   ${massyColumn} ${massy}\nFuck:  ${frustrationColumn} ${frustration}%\nLP:   ${lanpowerColumn} ${lanpower}%`
+    return `\nFood:  ${foodColumn} ${food}%\nSleep ${sleepColumn} ${sleep}%\nFilth:    ${filthColumn} ${filth}%\nES:    ${esColumn} ${es}\nMässy:   ${massyColumn} ${massy}\nFuck:  ${frustrationColumn} ${frustration}%\nLP:   ${lanpowerColumn} ${lanpower}%`
     // return columns;
 }
 
@@ -229,14 +361,14 @@ function statusMe(username) {
         lanaajat.forEach(function(lanaaja) {
             if (lanaaja.name === username) {
                 let lanpoweri;
-                if (lanaaja.uni > 0 && lanaaja.fuudi > 0) {
-                    lanaaja.vitutus1 = (((100.0 - lanaaja.uni) + (100.0 - lanaaja.fuudi) + lanaaja.saastaisuus) / 3) + (0.5 * lanaaja.vitutus2);
-                    lanpoweri = ((0.8 * lanaaja.uni) + (1.2 * lanaaja.fuudi) + (100.0 - lanaaja.vitutus1)) / 3;
+                if (lanaaja.sleep > 0 && lanaaja.food > 0) {
+                    lanaaja.vitutus1 = (((100.0 - lanaaja.sleep) + (100.0 - lanaaja.food) + lanaaja.filth) / 3) + (0.5 * lanaaja.vitutus2);
+                    lanpoweri = ((0.8 * lanaaja.sleep) + (1.2 * lanaaja.food) + (100.0 - lanaaja.vitutus1)) / 3;
                 } else {
                     lanaaja.vitutus1 = 100.0;
                     lanpoweri = 0.0;
                 }
-                let stats = renderColumns(lanaaja.fuudi.toFixed(0), lanaaja.uni.toFixed(0), lanaaja.es, lanaaja.vitutus1.toFixed(0), lanpoweri.toFixed(0), lanaaja.massy);
+                let stats = renderColumns(lanaaja.food.toFixed(0), lanaaja.sleep.toFixed(0), lanaaja.es, lanaaja.vitutus1.toFixed(0), lanpoweri.toFixed(0), lanaaja.massy, lanaaja.filth.toFixed(0));
                 result = `User ${lanaaja.name}${stats}`;
             }
         });
@@ -268,10 +400,21 @@ function addUserTelegram(username, chatId) {
 
     if (!exists) {
         telegramChatIds[username] = chatId;
-        let newPlayer = new Lanaaja(username);
-        lanaajat.push(newPlayer);
-        // console.log(newPlayer.fuudi);
-        return `User ${username} created`;
+        let lanaajaExists = false;
+        lanaajat.forEach(function (lanaaja) {
+            lanaaja.name === username ? lanaajaExists = true : null;
+        });
+
+        if (!lanaajaExists) {
+            let newPlayer = new Lanaaja(username, esGainToSleep);
+            lanaajat.push(newPlayer);
+        }
+        // console.log(newPlayer.food);
+
+        if (lanaajaExists) {
+            return `Telegram integration enabled for user ${username}`;
+        }
+        return `User ${username} created, telegram integration enabled`;
 
     } else return `User ${username} already exists!`;
 }
@@ -288,10 +431,21 @@ function addUserDiscord(username, chatId) {
 
     if (!exists) {
         discordChatIds[username] = chatId;
-        let newPlayer = new Lanaaja(username);
-        lanaajat.push(newPlayer);
-        return `User ${username} created`;
+        let lanaajaExists = false;
+        lanaajat.forEach(function (lanaaja) {
+            lanaaja.name === username ? lanaajaExists = true : null;
+        });
 
+        if (!lanaajaExists) {
+            let newPlayer = new Lanaaja(username, esGainToSleep);
+            lanaajat.push(newPlayer);
+        }
+        // console.log(newPlayer.food);
+
+        if (lanaajaExists) {
+            return `Discord integration enabled for user ${username}`;
+        }
+        return `User ${username} created, discord integration enabled`;
     } else return `User ${username} already exists!`;
 }
 
@@ -306,7 +460,7 @@ function eatFood(username) {
     } else {
         lanaajat.forEach(function(lanaaja) {
             if (lanaaja.name === username) {
-                lanaaja.fuudi = 100;
+                lanaaja.food = 100;
                 result = `User ${lanaaja.name} just ate!`;
             }
         });
@@ -326,7 +480,7 @@ function lanaajaSleep(username) {
     } else {
         lanaajat.forEach(function(lanaaja) {
             if (lanaaja.name === username) {
-                lanaaja.uni = 100;
+                lanaaja.sleep = 100;
                 result = `User ${lanaaja.name} just woke up!`;
             }
         });
@@ -349,8 +503,8 @@ function drinkES(username) {
                 if (lanaaja.es === 0) {
                     result = `User ${lanaaja.name} has no more ES!!!`;
                 } else {
-                    lanaaja.uni += lanaaja.esh;
-                    lanaaja.esh = lanaaja.esh - (0.3 * lanaaja.esh);
+                    lanaaja.sleep += lanaaja.esh;
+                    lanaaja.esh = lanaaja.esh - (esDiminishingReturns * lanaaja.esh);
                     lanaaja.es -= 1;
                     result = `PÄRINÄ PÄÄLLE`;
                 }
@@ -399,8 +553,8 @@ function eatMassy(username) {
                 if (lanaaja.massy === 0) {
                     result = `User ${lanaaja.name} has no more MÄSSY!!!`;
                 } else {
-                    if (lanaaja.fuudi < 100.0) {
-                        lanaaja.fuudi += lanaaja.massyh;
+                    if (lanaaja.food < 100.0) {
+                        lanaaja.food += lanaaja.massyh;
                     }
                     lanaaja.massyh = lanaaja.massyh - (0.3 * lanaaja.massyh);
                     lanaaja.massy -= 1;
@@ -529,7 +683,7 @@ function sauna(username) {
     } else {
         lanaajat.forEach(function(lanaaja) {
             if (lanaaja.name === username) {
-                lanaaja.saastaisuus = 0.0;
+                lanaaja.filth = 0.0;
                 result = `Sauna #1`;
             }
         });
@@ -549,23 +703,42 @@ function resetStats(username) {
     } else {
         lanaajat.forEach(function(lanaaja) {
             if (lanaaja.name === username) {
-                lanaaja.uni = 100.0;
+                lanaaja.sleep = 100.0;
                 lanaaja.es  = 0;
                 lanaaja.esh = 30.0;
-                lanaaja.fuudi = 100.0;
+                lanaaja.food = 100.0;
                 lanaaja.massy = 0;
                 lanaaja.massyh = 10.0;
                 lanaaja.vitutus1 = 0.0;
                 lanaaja.vitutus2 = 0.0;
-                lanaaja.saastaisuus = 0.0;
+                lanaaja.filth = 0.0;
                 result = `${lanaaja.name}'s stats have been reset!`;
             }
         });
     }
 
     return result;
+}
 
+telegram.onText(/\/help/, (message) => {
+    telegram.sendMessage(message.chat.id, help());
+});
 
+function help() {
+    return `Komennot: \n
+    /drinkes - Juo ES \n
+    /eatfood - Syö ruokaa \n
+    /eatmassy - Syö mässyä \n
+    /eivituta - Nyt ei vituta \n
+    /sauna - Käy saunassa \n
+    /sleep - Nuku \n
+    /stashes - Päivitä ES määrä \n
+    /stashmassy - Päivitä Mässymäärä \n
+    /statusall - Kaikkien status \n
+    /statusme - Oma status \n
+    /teppoavituttaa - NYT ON TEPPO VIHAINEN \n
+    /vituttaa - Nyt vähän vituttaa \n
+    /VITUTTAA - VITTU KU VITUTTAA`
 }
 
 telegram.on('polling_error', (error) => {
