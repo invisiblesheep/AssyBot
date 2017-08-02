@@ -314,16 +314,117 @@ function sendWarningMessage(message, username) {
 }
 
 function renderColumns(food, sleep, es, frustration, lanpower, massy, filth){
-    let foodColumn = renderColumn(food);
-    let sleepColumn = renderColumn(sleep);
-    let esColumn = renderColumn(es > 100 ? 100 : es);
-    let frustrationColumn = renderColumn(frustration);
+    let foodColumn = renderFoodColumn(food);
+    let sleepColumn = renderSleepColumn(sleep);
+    let esColumn = renderEsColumn(es > 10 ? 10 : es);
+    let frustrationColumn = renderVitutusColumn(frustration);
     let lanpowerColumn = renderColumn(lanpower);
-    let massyColumn = renderColumn(massy > 100 ? 100 : massy);
-    let filthColumn = renderColumn(filth);
+    let massyColumn = renderMassyColumn(massy > 10 ? 10 : massy);
+    let filthColumn = renderFilthColumn(filth);
     // var columns = "\nFood:  " + foodColumn + "\nSleep: "+sleepColumn+"\nES:    "+esColumn+"\nFuck:  "+frustrationColumn+"\nLP:    "+lanpowerColumn;
     return `\nFood:  ${foodColumn} ${food}%\nSleep ${sleepColumn} ${sleep}%\nFilth:    ${filthColumn} ${filth}%\nES:    ${esColumn} ${es}\nMässy:   ${massyColumn} ${massy}\nFuck:  ${frustrationColumn} ${frustration}%\nLP:   ${lanpowerColumn} ${lanpower}%`
     // return columns;
+}
+
+function renderFoodColumn(value){
+    var num = Math.floor(value/10);
+    //console.log(num);
+    var column = "";
+    for(count = 0; count < num; count++){
+        column= column.concat(":hamburger:");
+        //console.log(column);
+    }
+    //console.log(column);
+    for(count = 0; count < 10-num; count++){
+        column= column.concat(":x:");
+        //console.log(column);
+    }
+    return "["+column+"]";
+}
+
+function renderSleepColumn(value){
+    var num = Math.floor(value/10);
+    //console.log(num);
+    var column = "";
+    for(count = 0; count < num; count++){
+        column= column.concat(":zzz:");
+        //console.log(column);
+    }
+    //console.log(column);
+    for(count = 0; count < 10-num; count++){
+        column= column.concat(":x:");
+        //console.log(column);
+    }
+    return "["+column+"]";
+}
+
+function renderFilthColumn(value){
+    var num = Math.floor(value/10);
+    //console.log(num);
+    var column = "";
+    for(count = 0; count < num; count++){
+        column= column.concat(":poo:");
+        //console.log(column);
+    }
+    //console.log(column);
+    for(count = 0; count < 10-num; count++){
+        column= column.concat(":slightly_smiling_face:");
+        //console.log(column);
+    }
+    return "["+column+"]";
+}
+
+function renderVitutusColumn(value){
+    var num = Math.floor(value/10);
+    //console.log(num);
+    var column = "";
+    for(count = 0; count < num; count++){
+        column= column.concat(":rage:");
+        //console.log(column);
+    }
+    //console.log(column);
+    for(count = 0; count < 10-num; count++){
+        column= column.concat(":slightly_smiling_face:");
+        //console.log(column);
+    }
+    return "["+column+"]";
+}
+
+function renderEsColumn(value){
+    if (value <= 10){
+        var num = value;
+    }
+    else{
+        var num = 10;
+    }
+    //console.log(num);
+    var column = "";
+    for(count = 0; count < num; count++){
+        column= column.concat(":battery:");
+        //console.log(column);
+    }
+    //console.log(column);
+    for(count = 0; count < 10-num; count++){
+        column= column.concat(":x:");
+        //console.log(column);
+    }
+    return "["+column+"]";
+}
+
+function renderMassyColumn(value){
+    if (value <= 10){
+        var num = value;
+    }
+    else{
+        var num = 10;
+    }
+    //console.log(num);
+    var column = "";
+    for(count = 0; count < num; count++){
+        column= column.concat(":popcorn:");
+        //console.log(column);
+    }
+    return "["+column+"]";
 }
 
 function renderColumn(value){
