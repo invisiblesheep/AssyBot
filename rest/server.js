@@ -1,5 +1,6 @@
 //Dependencies
 var http = require('http'),
+    emoji = require('node-emoji')
     express = require('express'),
     bodyParser = require('body-parser'),
     path = require('path'),
@@ -318,16 +319,16 @@ function sendWarningMessage(message, username) {
 }
 
 function renderColumns(food, sleep, es, frustration, lanpower, massy, filth){
-    let foodColumn = renderColumn(food >= 100 ? 100 : food);
-    let sleepColumn = renderColumn(sleep >= 100 ? 100 : sleep);
-    let esColumn = renderColumn(es > 25 ? 100 : es * 4);
-    let frustrationColumn = renderColumn(frustration >= 100 ? 100 : frustration);
+    let foodColumn = renderFoodColumn(food >= 100 ? 100 : food);
+    let sleepColumn = renderSleepColumn(sleep >= 100 ? 100 : sleep);
+    let esColumn = renderEsColumn(es > 25 ? 100 : es * 4);
+    let frustrationColumn = renderVitutusColumn(frustration >= 100 ? 100 : frustration);
     let lanpowerColumn = renderColumn(lanpower >= 100 ? 100 : lanpower);
-    let massyColumn = renderColumn(massy > 10 ? 100 : massy * 10);
-    let filthColumn = renderColumn(filth >= 100 ? 100 : filth);
+    let massyColumn = renderMassyColumn(massy > 10 ? 100 : massy * 10);
+    let filthColumn = renderFilthColumn(filth >= 100 ? 100 : filth);
     // var columns = "\nFood:  " + foodColumn + "\nSleep: "+sleepColumn+"\nES:    "+esColumn+"\nFuck:  "+frustrationColumn+"\nLP:    "+lanpowerColumn;
-    return `\nFood:  ${foodColumn} ${food}%\nSleep ${sleepColumn} ${sleep}%\nFilth:    ${filthColumn} ${filth}%\nES:    ${esColumn} ${es}\nMässy:   ${massyColumn} ${massy}\nFuck:  ${frustrationColumn} ${frustration}%\nLP:   ${lanpowerColumn} ${lanpower}%`
-    // return columns;
+    var columns = `\nFood:  ${foodColumn} ${food}%\nSleep ${sleepColumn} ${sleep}%\nFilth:    ${filthColumn} ${filth}%\nES:    ${esColumn} ${es}\nMässy:   ${massyColumn} ${massy}\nFuck:  ${frustrationColumn} ${frustration}%\nLP:   ${lanpowerColumn} ${lanpower}%`
+     return emoji.emojify(columns);
 }
 
 function renderFoodColumn(value){
@@ -343,7 +344,7 @@ function renderFoodColumn(value){
         column= column.concat(":x:");
         //console.log(column);
     }
-    return "["+column+"]";
+    return column;
 }
 
 function renderSleepColumn(value){
@@ -359,7 +360,7 @@ function renderSleepColumn(value){
         column= column.concat(":x:");
         //console.log(column);
     }
-    return "["+column+"]";
+    return column;
 }
 
 function renderFilthColumn(value){
@@ -375,7 +376,7 @@ function renderFilthColumn(value){
         column= column.concat(":slightly_smiling_face:");
         //console.log(column);
     }
-    return "["+column+"]";
+    return column;
 }
 
 function renderVitutusColumn(value){
@@ -391,7 +392,7 @@ function renderVitutusColumn(value){
         column= column.concat(":slightly_smiling_face:");
         //console.log(column);
     }
-    return "["+column+"]";
+    return column;
 }
 
 function renderEsColumn(value){
@@ -408,11 +409,11 @@ function renderEsColumn(value){
         //console.log(column);
     }
     //console.log(column);
-    for(count = 0; count < 10-num; count++){
-        column= column.concat(":x:");
+    //for(count = 0; count < 10-num; count++){
+    //    column= column.concat(":x:");
         //console.log(column);
-    }
-    return "["+column+"]";
+    //}
+    return column;
 }
 
 function renderMassyColumn(value){
@@ -428,7 +429,7 @@ function renderMassyColumn(value){
         column= column.concat(":popcorn:");
         //console.log(column);
     }
-    return "["+column+"]";
+    return column;
 }
 
 function renderColumn(value){
