@@ -255,20 +255,20 @@ function checkSleepLevels(lanaaja) {
 }
 
 function checkFilthLevels(lanaaja) {
-    if (lanaaja.filth > warningLevelLow) {
+    if (lanaaja.filth < 50.0) {
         resetFilthFlags(lanaaja);
-    } else if (lanaaja.filth > 80.0 && lanaaja.filth <= 50.0 && !lanaaja.filthWarningFlagLow) {
-        sendWarningMessage(`${lanaaja.name} filth level at ${warningLevelLow}%!`, lanaaja.name);
+    } else if (lanaaja.filth < 80.0 && lanaaja.filth >= 50.0 && !lanaaja.filthWarningFlagLow) {
+        sendWarningMessage(`${lanaaja.name} filth level at ${50}%!`, lanaaja.name);
         lanaaja.filthWarningFlagLow = true;
         lanaaja.filthWarningFlagMed = false;
         lanaaja.filthWarningFlagHigh = false;
-    } else if (lanaaja.filth > 95.0 && lanaaja.filth <= 80.0 && !lanaaja.filthWarningFlagMed) {
-        sendWarningMessage(`${lanaaja.name} filth level at ${warningLevelMed}%!`, lanaaja.name);
+    } else if (lanaaja.filth < 95.0 && lanaaja.filth >= 80.0 && !lanaaja.filthWarningFlagMed) {
+        sendWarningMessage(`${lanaaja.name} filth level at ${80}%!`, lanaaja.name);
         lanaaja.filthWarningFlagLow = true;
         lanaaja.filthWarningFlagMed = true;
         lanaaja.filthWarningFlagHigh = false;
-    } else if (lanaaja.filth >= 0 && lanaaja.filth <= 95.0 && !lanaaja.filthWarningFlagHigh) {
-        sendWarningMessage(`${lanaaja.name} filth level at ${warningLevelHigh}%!`, lanaaja.name);
+    } else if (lanaaja.filth <= 100.0 && lanaaja.filth >= 95.0 && !lanaaja.filthWarningFlagHigh) {
+        sendWarningMessage(`${lanaaja.name} filth level at ${95}%!`, lanaaja.name);
         lanaaja.filthWarningFlagLow = true;
         lanaaja.filthWarningFlagMed = true;
         lanaaja.filthWarningFlagHigh = true;
