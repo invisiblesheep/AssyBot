@@ -131,6 +131,10 @@ client.on("message", (message) => {
                     message.channel.send(help());
                 }
 
+                if (message.content.startsWith("/assytimer")) {
+                    message.channel.send(assyTimer());
+                }
+
             }
 
             // if (!exists) {
@@ -449,6 +453,23 @@ function renderColumn(value){
 var lanaajat = [];
 var telegramChatIds = new Map();
 var discordChatIds = new Map();
+const countDownDate = new Date("2017-08-06T14:00:00+00:00").getTime();
+
+telegram.onText(/\/assytimer/, (message) => {
+    telegram.sendMessage(message.chat.id, assyTimer());
+});
+
+function assyTimer() {
+    let now = new Date().getTime();
+    let distance = countDownDate - now;
+
+    let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    return `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds of ASSEMBLY 2017 left!`
+}
 
 telegram.onText(/\/statusme/, (message) => {
     telegram.sendMessage(message.chat.id, statusMe(message.from.username));
