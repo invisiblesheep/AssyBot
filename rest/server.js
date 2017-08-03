@@ -852,6 +852,7 @@ telegram.onText(/\/help/, (message) => {
 
 function help() {
     return `Komennot: \n
+    /assytimer - Assembly 2017 countdown \n
     /drinkes - Juo ES \n
     /eatfood - Syö ruokaa \n
     /eatmassy - Syö mässyä \n
