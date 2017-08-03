@@ -32,11 +32,11 @@ var collectionDriver;
 const token = "433183839:AAGG7rJinMHDU4ViYi5cxqKRMX4a8bRNspY";
 const url = 'https://arvala.eu';
 //bot which uses polling and getUpdates-method
-var telegram = new TelegramBot(token, { polling: true });
+// var telegram = new TelegramBot(token, { polling: true });
 
-// var telegram = new TelegramBot(token);
+var telegram = new TelegramBot(token);
 
-// telegram.setWebHook(`${url}/bot${token}`);
+telegram.setWebHook(`${url}/bot${token}`);
 /*
 MongoClient.connect(mongoHost, function(err, db){
   assert.equal(null, err);
@@ -922,6 +922,3 @@ http.createServer(app).listen(app.get('port'), function(){
 // app.listen(port, () => {
 //   console.log(`Express server is listening on ${port}`);
 // });
-
-
-
