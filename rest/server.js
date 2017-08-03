@@ -1,5 +1,6 @@
 //Dependencies
 var http = require('http'),
+    emoji = require('node-emoji')
     express = require('express'),
     bodyParser = require('body-parser'),
     path = require('path'),
@@ -9,9 +10,10 @@ var http = require('http'),
     //mongoose = require('mongoose'),
     assert = require('assert'),
     TelegramBot = require('node-telegram-bot-api'),
-    Lanaaja = require('./Lanaaja').Lanaaja;
-
-// import Lanaaja from './Lanaaja'
+    Lanaaja = require('./Lanaaja').Lanaaja,
+    fs = require('fs'),
+    request = require('request'),
+    cheerio = require('cheerio');
 
 //Express
 var app = express();
@@ -42,26 +44,403 @@ MongoClient.connect(mongoHost, function(err, db){
   collectionDriver = new CollectionDriver(db);
 });
 */
+
+const Discord = require("discord.js");
+const client = new Discord.Client();
+
+client.login("MzQxMjcwNzMxMzM1Nzk0Njk5.DF-p_Q.5Q5lzfvI0qxbPLHfw9wwfML4UXc");
+
+client.on("ready", () => {
+    // addUser"testi1");
+    // addUser("testi2");
+    console.log("I am ready!");
+});
+
+client.on("message", (message) => {
+
+    // console.log(message.content);
+    if (message.content.startsWith("/adduser")) {
+        message.channel.send(addUserDiscord(message.author.username, message.channel.id));
+    } else {
+
+        lanaajat.forEach(function(lanaaja) {
+            if (lanaaja.name === message.author.username) {
+
+
+                if (message.content.startsWith("/statusme")) {
+                    message.channel.send(statusMe(lanaaja.name));
+                }
+
+                if (message.content.startsWith("/statusall")) {
+                    lanaajat.forEach(function(lanaaja) {
+                        message.channel.send(statusMe(lanaaja.name));
+                    });
+                }
+
+                if (message.content.startsWith("/eatfood")) {
+                    message.channel.send(eatFood(lanaaja.name));
+                }
+
+                if (message.content.startsWith("/sleep")) {
+                    message.channel.send(lanaajaSleep(lanaaja.name));
+                }
+
+                if (message.content.startsWith("/drinkes")) {
+                    message.channel.send(drinkES(lanaaja.name));
+                }
+
+                if (message.content.startsWith("/stashes")) {
+                    let tokens = message.content.split(' ');
+                    let amount = parseInt(tokens[1]);
+                    // console.log(amount);
+                    message.channel.send(stashES(lanaaja.name, amount));
+                }
+
+                if (message.content.startsWith("/eatmassy")) {
+                    message.channel.send(eatMassy(lanaaja.name));
+                }
+
+                if (message.content.startsWith("/stashmassy")) {
+                    let tokens = message.content.split(' ');
+                    let amount = parseInt(tokens[1]);
+                    // console.log(amount);
+                    message.channel.send(stashMassy(lanaaja.name, amount));
+                }
+
+                if (message.content.startsWith("/vituttaa")) {
+                    message.channel.send(vituttaaVahan(lanaaja.name));
+                }
+
+                if (message.content.startsWith("/VITUTTAA")) {
+                    message.channel.send(vituttaaHelvetisti(lanaaja.name));
+                }
+
+                if (message.content.startsWith("/teppoavituttaa")) {
+                    message.channel.send(teppoaVituttaa(lanaaja.name));
+                }
+
+                if (message.content.startsWith("/eivituta")) {
+                    message.channel.send(eiVituta(lanaaja.name));
+                }
+
+                if (message.content.startsWith("/sauna")) {
+                    message.channel.send(sauna(lanaaja.name));
+                }
+
+                if (message.content.startsWith("/resetUser")) {
+                    message.channel.send(resetStats(lanaaja.name));
+                }
+
+                if (message.content.startsWith("/help")) {
+                    message.channel.send(help());
+                }
+
+                if (message.content.startsWith("/assytimer")) {
+                    message.channel.send(assyTimer());
+                }
+
+                if (message.content.startsWith("/events")) {
+                    message.channel.send(events());
+                }
+
+            }
+
+            // if (!exists) {
+            //     message.channel.send("The current user is not initialized")
+            // }
+        });
+    }
+    if (message.content.startsWith("ping")) {
+        // console.log(message.author.username);
+        message.channel.send("AssyBot ready!");
+    }
+});
+
+const foodDecayHours = process.env.FOODDECAY || 6.0;
+const sleepDecayHours = process.env.SLEEPDECAY || 18.0;
+const filthGainHours = process.env.FILTHGAIN || 24.0;
+const esGainToSleep = process.env.ESGAIN || 30.0;
+const esDiminishingReturns = process.env.ESDIMINISH || 0.3;
+const decayIntervalInMinutes = process.env.DECAYINTERVAL || 15.0;
+const decayCountPerHour = 60.0 / decayIntervalInMinutes;
+
+const warningLevelLow = process.env.WARNINGLEVELLOW || 25.0;
+const warningLevelMed = process.env.WARNINGLEVELMED || 10.0;
+const warningLevelHigh = process.env.WARNINGLEVELHIGH || 5.0;
+
+const foodDecay = (100.0 / foodDecayHours) / decayCountPerHour;
+const sleepDecay = (100 / sleepDecayHours) / decayCountPerHour;
+const filthGain = (100 / filthGainHours) / decayCountPerHour;
+
 // Update player stats
 setInterval(function(){
   console.log("setInterval: Updating player stats");
-  // collectionDriver.deleteOld("FlagBase");
-    //TODO: IMPLEMENT
-}, 5 * 60000);
+    decayUserStats();
+}, decayIntervalInMinutes * 60000);
 
-function renderColumns(food, sleep, es, frustration, lanpower){
-    let foodColumn = renderColumn(food);
-    let sleepColumn = renderColumn(sleep);
-    let esColumn = renderColumn(es);
-    let frustrationColumn = renderColumn(frustration);
-    let lanpowerColumn = renderColumn(lanpower);
+function decayUserStats(){
+    if (lanaajat.length > 0) {
+        lanaajat.forEach(function(lanaaja) {
+            lanaaja.food >= foodDecay ? lanaaja.food -= foodDecay : lanaaja.food = 0;
+            lanaaja.sleep >= sleepDecay ? lanaaja.sleep -= sleepDecay : lanaaja.sleep = 0;
+            lanaaja.filth <= 100.0 - filthGain ? lanaaja.filth += filthGain : lanaaja.filth = 100.0;
+
+            checkFoodLevels(lanaaja);
+            checkSleepLevels(lanaaja);
+            checkFilthLevels(lanaaja);
+        });
+    }
+}
+
+// function checkLevelsOfAttribute(lanaaja, attr) {
+//     let attribute;
+//     let flag;
+//     if (attr === "food") {
+//         attribute = lanaaja.food
+//
+//     } else if (attr === "sleep") {
+//         attribute = lanaaja.sleep
+//     } else if (attr === "filth") {
+//         attribute = lanaaja.filth
+//     } else return;
+//
+//     if (attribute > warningLevelLow) {
+//         resetFoodFlags(lanaaja);
+//     } else if (attribute > warningLevelMed && attribute <= warningLevelLow && lanaaja.foodWarningFlagLow) {
+//         sendWarningMessage(`${lanaaja.name} food level at ${warningLevelLow}%!`, lanaaja.name);
+//         lanaaja.foodWarningFlagLow = true;
+//         lanaaja.foodWarningFlagMed = false;
+//         lanaaja.foodWarningFlagHigh = false;
+//     } else if (lanaaja.food > warningLevelHigh && lanaaja.food <= warningLevelMed && lanaaja.foodWarningFlagMed) {
+//         sendWarningMessage(`${lanaaja.name} food level at ${warningLevelMed}%!`, lanaaja.name);
+//         lanaaja.foodWarningFlagLow = true;
+//         lanaaja.foodWarningFlagMed = true;
+//         lanaaja.foodWarningFlagHigh = false;
+//     } else if (lanaaja.food >= 0 && lanaaja.food <= warningLevelHigh && lanaaja.foodWarningFlagHigh) {
+//         sendWarningMessage(`${lanaaja.name} food level at ${warningLevelHigh}%!`, lanaaja.name);
+//         lanaaja.foodWarningFlagLow = true;
+//         lanaaja.foodWarningFlagMed = true;
+//         lanaaja.foodWarningFlagHigh = true;
+//     }
+// }
+
+function checkFoodLevels(lanaaja) {
+    if (lanaaja.food > warningLevelLow) {
+        resetFoodFlags(lanaaja);
+    } else if (lanaaja.food > warningLevelMed && lanaaja.food <= warningLevelLow && !lanaaja.foodWarningFlagLow) {
+        sendWarningMessage(`${lanaaja.name} food level at ${warningLevelLow}%!`, lanaaja.name);
+        lanaaja.foodWarningFlagLow = true;
+        lanaaja.foodWarningFlagMed = false;
+        lanaaja.foodWarningFlagHigh = false;
+    } else if (lanaaja.food > warningLevelHigh && lanaaja.food <= warningLevelMed && !lanaaja.foodWarningFlagMed) {
+        sendWarningMessage(`${lanaaja.name} food level at ${warningLevelMed}%!`, lanaaja.name);
+        lanaaja.foodWarningFlagLow = true;
+        lanaaja.foodWarningFlagMed = true;
+        lanaaja.foodWarningFlagHigh = false;
+    } else if (lanaaja.food >= 0 && lanaaja.food <= warningLevelHigh && !lanaaja.foodWarningFlagHigh) {
+        sendWarningMessage(`${lanaaja.name} food level at ${warningLevelHigh}%!`, lanaaja.name);
+        lanaaja.foodWarningFlagLow = true;
+        lanaaja.foodWarningFlagMed = true;
+        lanaaja.foodWarningFlagHigh = true;
+    }
+}
+
+function checkSleepLevels(lanaaja) {
+    if (lanaaja.sleep > warningLevelLow) {
+        resetSleepFlags(lanaaja);
+    } else if (lanaaja.sleep > warningLevelMed && lanaaja.sleep <= warningLevelLow && !lanaaja.sleepWarningFlagLow) {
+        sendWarningMessage(`${lanaaja.name} sleep level at ${warningLevelLow}%!`, lanaaja.name);
+        lanaaja.sleepWarningFlagLow = true;
+        lanaaja.sleepWarningFlagMed = false;
+        lanaaja.sleepWarningFlagHigh = false;
+    } else if (lanaaja.sleep > warningLevelHigh && lanaaja.sleep <= warningLevelMed && !lanaaja.sleepWarningFlagMed) {
+        sendWarningMessage(`${lanaaja.name} sleep level at ${warningLevelMed}%!`, lanaaja.name);
+        lanaaja.sleepWarningFlagLow = true;
+        lanaaja.sleepWarningFlagMed = true;
+        lanaaja.sleepWarningFlagHigh = false;
+    } else if (lanaaja.sleep >= 0 && lanaaja.sleep <= warningLevelHigh && !lanaaja.sleepWarningFlagHigh) {
+        sendWarningMessage(`${lanaaja.name} sleep level at ${warningLevelHigh}%!`, lanaaja.name);
+        lanaaja.sleepWarningFlagLow = true;
+        lanaaja.sleepWarningFlagMed = true;
+        lanaaja.sleepWarningFlagHigh = true;
+    }
+}
+
+function checkFilthLevels(lanaaja) {
+    if (lanaaja.filth < 50.0) {
+        resetFilthFlags(lanaaja);
+    } else if (lanaaja.filth < 80.0 && lanaaja.filth >= 50.0 && !lanaaja.filthWarningFlagLow) {
+        sendWarningMessage(`${lanaaja.name} filth level at ${50}%!`, lanaaja.name);
+        lanaaja.filthWarningFlagLow = true;
+        lanaaja.filthWarningFlagMed = false;
+        lanaaja.filthWarningFlagHigh = false;
+    } else if (lanaaja.filth < 95.0 && lanaaja.filth >= 80.0 && !lanaaja.filthWarningFlagMed) {
+        sendWarningMessage(`${lanaaja.name} filth level at ${80}%!`, lanaaja.name);
+        lanaaja.filthWarningFlagLow = true;
+        lanaaja.filthWarningFlagMed = true;
+        lanaaja.filthWarningFlagHigh = false;
+    } else if (lanaaja.filth <= 100.0 && lanaaja.filth >= 95.0 && !lanaaja.filthWarningFlagHigh) {
+        sendWarningMessage(`${lanaaja.name} filth level at ${95}%!`, lanaaja.name);
+        lanaaja.filthWarningFlagLow = true;
+        lanaaja.filthWarningFlagMed = true;
+        lanaaja.filthWarningFlagHigh = true;
+    }
+}
+
+function resetFoodFlags(lanaaja) {
+    lanaaja.foodWarningFlagHigh = false;
+    lanaaja.foodWarningFlagMed = false;
+    lanaaja.foodWarningFlagLow = false;
+}
+
+function resetSleepFlags(lanaaja) {
+    lanaaja.sleepWarningFlagHigh = false;
+    lanaaja.sleepWarningFlagMed = false;
+    lanaaja.sleepWarningFlagLow = false;
+}
+
+function resetFilthFlags(lanaaja) {
+    lanaaja.filthWarningFlagHigh = false;
+    lanaaja.filthWarningFlagMed = false;
+    lanaaja.filthWarningFlagLow = false;
+}
+
+
+function sendWarningMessage(message, username) {
+
+    for (var k in telegramChatIds) {
+        if (telegramChatIds.hasOwnProperty(k)) {
+            if (k === username) {
+                telegram.sendMessage(telegramChatIds[k], message);
+            }
+        }
+    }
+
+    for (var k in discordChatIds) {
+        if (discordChatIds.hasOwnProperty(k)) {
+            if (k === username) {
+                client.channels.get(discordChatIds[k]).send(message);
+            }
+        }
+    }
+}
+
+function renderColumns(food, sleep, es, frustration, lanpower, massy, filth){
+    let foodColumn = renderFoodColumn(food >= 100 ? 100 : food);
+    let sleepColumn = renderSleepColumn(sleep >= 100 ? 100 : sleep);
+    let esColumn = renderEsColumn(es > 25 ? 100 : es * 4);
+    let frustrationColumn = renderVitutusColumn(frustration >= 100 ? 100 : frustration);
+    let lanpowerColumn = renderColumn(lanpower >= 100 ? 100 : lanpower);
+    let massyColumn = renderMassyColumn(massy > 10 ? 100 : massy * 10);
+    let filthColumn = renderFilthColumn(filth >= 100 ? 100 : filth);
     // var columns = "\nFood:  " + foodColumn + "\nSleep: "+sleepColumn+"\nES:    "+esColumn+"\nFuck:  "+frustrationColumn+"\nLP:    "+lanpowerColumn;
-    return `\nFood:  ${foodColumn} ${food}%\nSleep ${sleepColumn} ${sleep}%\nES:    ${esColumn} ${es}\nFuck:  ${frustrationColumn} ${frustration}%\nLP:   ${lanpowerColumn} ${lanpower}%`
-    // return columns;
+    var columns = `\nFood:  ${foodColumn} ${food}%\nSleep ${sleepColumn} ${sleep}%\nFilth:    ${filthColumn} ${filth}%\nES:    ${esColumn} ${es}\nMässy:   ${massyColumn} ${massy}\nFuck:  ${frustrationColumn} ${frustration}%\nLP:   ${lanpowerColumn} ${lanpower}%`
+     return emoji.emojify(columns);
+}
+
+function renderFoodColumn(value){
+    var num = Math.floor(value/10);
+    //console.log(num);
+    var column = "";
+    for(count = 0; count < num; count++){
+        column= column.concat(":hamburger:");
+        //console.log(column);
+    }
+    //console.log(column);
+    for(count = 0; count < 10-num; count++){
+        column= column.concat(":x:");
+        //console.log(column);
+    }
+    return column;
+}
+
+function renderSleepColumn(value){
+    var num = Math.floor(value/10);
+    //console.log(num);
+    var column = "";
+    for(count = 0; count < num; count++){
+        column= column.concat(":zzz:");
+        //console.log(column);
+    }
+    //console.log(column);
+    for(count = 0; count < 10-num; count++){
+        column= column.concat(":x:");
+        //console.log(column);
+    }
+    return column;
+}
+
+function renderFilthColumn(value){
+    var num = Math.floor(value/10);
+    //console.log(num);
+    var column = "";
+    for(count = 0; count < num; count++){
+        column= column.concat(":poo:");
+        //console.log(column);
+    }
+    //console.log(column);
+    for(count = 0; count < 10-num; count++){
+        column= column.concat(":slightly_smiling_face:");
+        //console.log(column);
+    }
+    return column;
+}
+
+function renderVitutusColumn(value){
+    var num = Math.floor(value/10);
+    //console.log(num);
+    var column = "";
+    for(count = 0; count < num; count++){
+        column= column.concat(":rage:");
+        //console.log(column);
+    }
+    //console.log(column);
+    for(count = 0; count < 10-num; count++){
+        column= column.concat(":slightly_smiling_face:");
+        //console.log(column);
+    }
+    return column;
+}
+
+function renderEsColumn(value){
+    if (value <= 10){
+        var num = value;
+    }
+    else{
+        var num = 10;
+    }
+    //console.log(num);
+    var column = "";
+    for(count = 0; count < num; count++){
+        column= column.concat(":battery:");
+        //console.log(column);
+    }
+    //console.log(column);
+    //for(count = 0; count < 10-num; count++){
+    //    column= column.concat(":x:");
+        //console.log(column);
+    //}
+    return column;
+}
+
+function renderMassyColumn(value){
+    if (value <= 10){
+        var num = value;
+    }
+    else{
+        var num = 10;
+    }
+    //console.log(num);
+    var column = "";
+    for(count = 0; count < num; count++){
+        column= column.concat(":popcorn:");
+        //console.log(column);
+    }
+    return column;
 }
 
 function renderColumn(value){
-    var num = Math.floor(value/6.7);
+    var num = Math.floor(value/10);
     //console.log(num);
     var column = "";
     for(count = 0; count < num; count++){
@@ -70,7 +449,7 @@ function renderColumn(value){
     }
     column = column.concat("|");
     //console.log(column);
-    for(count = 0; count < 14-num; count++){
+    for(count = 0; count < 10-num; count++){
         column= column.concat("=");
         //console.log(column);
     }
@@ -79,249 +458,451 @@ function renderColumn(value){
 
 
 // Bot stuff
-// var testiPelaaja = new Lanaaja("Testilanaaja");
 var lanaajat = [];
+var telegramChatIds = new Map();
+var discordChatIds = new Map();
+const countDownDate = new Date("2017-08-06T14:00:00+00:00").getTime();
 
+function events(){
+    let url1 = "http://m.assembly.org/"
 
-telegram.onText(/\/testing/, (message) => {
-	telegram.sendMessage(message.chat.id, "webhook comms testing");
+    request(url1, function (error, response, html) {
+
+        if (!error) {
+            var $ = cheerio.load(html);
+
+            var now, next1, next2;
+
+            $('.f').filter(function(){
+
+                let data = $(this);
+
+                console.log(data.children);
+                // now = data.children().first().children().first().text();
+            });
+
+            // return now;
+        }
+    });
+
+   return
+}
+
+telegram.onText(/\/assytimer/, (message) => {
+    telegram.sendMessage(message.chat.id, assyTimer());
 });
 
+function assyTimer() {
+    let now = new Date().getTime();
+    let distance = countDownDate - now;
 
+    let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    let seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
+    return `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds of ASSEMBLY 2017 left!`
+}
 
+telegram.onText(/\/statusme/, (message) => {
+    telegram.sendMessage(message.chat.id, statusMe(message.from.username));
+});
 
-
-telegram.onText(/\/statusMe/, (message) => {
-    const name = message.from.username;
-    var lanpoweri;
+function statusMe(username) {
+    var result = "";
     if (lanaajat.length === 0) {
-        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+        result =  "The current user is not initialized";
     } else {
         lanaajat.forEach(function(lanaaja) {
-            if (lanaaja.name === name) {
-                if (lanaaja.uni > 0 && lanaaja.fuudi > 0) {
-                    lanaaja.vitutus1 = (((100.0 - lanaaja.uni) + (100.0 - lanaaja.fuudi) + lanaaja.saastaisuus) / 3) + (0.5 * lanaaja.vitutus2);
-                    lanpoweri = ((0.8 * lanaaja.uni) + (1.2 * lanaaja.fuudi) + (100.0 - lanaaja.vitutus1)) / 3;
+            if (lanaaja.name === username) {
+                let lanpoweri;
+                if (lanaaja.sleep > 0 && lanaaja.food > 0) {
+                    lanaaja.vitutus1 = (((100.0 - lanaaja.sleep) + (100.0 - lanaaja.food) + lanaaja.filth) / 3) + (0.5 * lanaaja.vitutus2);
+                    lanpoweri = ((0.8 * lanaaja.sleep) + (1.2 * lanaaja.food) + (100.0 - lanaaja.vitutus1)) / 3;
                 } else {
                     lanaaja.vitutus1 = 100.0;
                     lanpoweri = 0.0;
                 }
-                var stats = renderColumns(lanaaja.fuudi, lanaaja.uni, lanaaja.es, lanaaja.vitutus1, lanpoweri);
-                telegram.sendMessage(message.chat.id, `User ${lanaaja.name}${stats}`);
-                //telegram.sendMessage(message.chat.id, `User ${lanaaja.name} \nFood: ${lanaaja.fuudi} \nVitutus: ${lanaaja.vitutus} \nLANPOWER: ${lanpoweri}`);
-                // telegram.sendMessage(message.chat.id, `User ${lanaaja.name} \nFood: ${lanaaja.fuudi}`);
+                let stats = renderColumns(lanaaja.food.toFixed(0), lanaaja.sleep.toFixed(0), lanaaja.es, lanaaja.vitutus1.toFixed(0), lanpoweri.toFixed(0), lanaaja.massy, lanaaja.filth.toFixed(0));
+                result = `User ${lanaaja.name}${stats}`;
             }
         });
     }
 
+    return result
+}
 
-    // console.log(message);
-    // telegram.sendMessage(message.chat.id, `Hello ${name} \nHello again,  ${name}`);
-    // telegram.sendMessage(message.chat.id, `Hello again,  ${name}`);
-});
-
-telegram.onText(/\/statusAll/, (message) => {
-    if (lanaajat.length === 0) {
-        telegram.sendMessage(message.chat.id, "No lanaaja in the game :(");
-    } else {
+telegram.onText(/\/statusall/, (message) => {
         lanaajat.forEach(function(lanaaja) {
-            telegram.sendMessage(message.chat.id, `User ${lanaaja.name} \nFood: ${lanaaja.fuudi}`);
+            telegram.sendMessage(message.chat.id, statusMe(lanaaja.name));
         });
-    }
 });
 
-telegram.onText(/\/addUser/, (message) => {
-    console.log(message);
-    var exists = false;
+telegram.onText(/\/adduser/, (message) => {
+    telegram.sendMessage(message.chat.id, addUserTelegram(message.from.username, message.chat.id));
+});
+
+function addUserTelegram(username, chatId) {
+    let exists = false;
     // telegram.sendMessage(message.chat.id, "addUser");
-    lanaajat.forEach(function(lanaaja) {
-        if (lanaaja.name === message.from.username) {
-            exists = true;
+    for (var k in telegramChatIds) {
+        if (telegramChatIds.hasOwnProperty(k)) {
+            if (k === username) {
+                exists = true;
+            }
         }
-    });
+    }
 
     if (!exists) {
+        telegramChatIds[username] = chatId;
+        let lanaajaExists = false;
+        lanaajat.forEach(function (lanaaja) {
+            lanaaja.name === username ? lanaajaExists = true : null;
+        });
 
-        const name = message.from.username;
-        var newPlayer = new Lanaaja(name);
-        lanaajat.push(newPlayer);
-        // console.log(newPlayer.fuudi);
-        telegram.sendMessage(message.chat.id, `New user created`);
+        if (!lanaajaExists) {
+            let newPlayer = new Lanaaja(username, esGainToSleep);
+            lanaajat.push(newPlayer);
+        }
+        // console.log(newPlayer.food);
 
-    } else telegram.sendMessage(message.chat.id, `User ${message.from.username} already exists!`);
+        if (lanaajaExists) {
+            return `Telegram integration enabled for user ${username}`;
+        }
+        return `User ${username} created, telegram integration enabled`;
+
+    } else return `User ${username} already exists!`;
+}
+
+function addUserDiscord(username, chatId) {
+    let exists = false;
+    for (var k in discordChatIds) {
+        if (discordChatIds.hasOwnProperty(k)) {
+            if (k === username) {
+                exists = true;
+            }
+        }
+    }
+
+    if (!exists) {
+        discordChatIds[username] = chatId;
+        let lanaajaExists = false;
+        lanaajat.forEach(function (lanaaja) {
+            lanaaja.name === username ? lanaajaExists = true : null;
+        });
+
+        if (!lanaajaExists) {
+            let newPlayer = new Lanaaja(username, esGainToSleep);
+            lanaajat.push(newPlayer);
+        }
+        // console.log(newPlayer.food);
+
+        if (lanaajaExists) {
+            return `Discord integration enabled for user ${username}`;
+        }
+        return `User ${username} created, discord integration enabled`;
+    } else return `User ${username} already exists!`;
+}
+
+telegram.onText(/\/eatfood/, (message) => {
+    telegram.sendMessage(message.chat.id, eatFood(message.from.username));
 });
 
-// telegram.onText(/\/getUsers/, (message) => {
-//     console.log(lanaajat[0]);
-//     telegram.sendMessage(message.chat.id, `first user in list: ${lanaajat[0].name} \ntotal users: ${lanaajat.length}`);
-//     // telegram.sendMessage(message.chat.id, `Hello again,  ${name}`);
-// });
-
-telegram.onText(/\/eatFood/, (message) => {
-    const name = message.from.username;
+function eatFood(username) {
+    var result = "";
     if (lanaajat.length === 0) {
-        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+        result = "The current user is not initialized";
     } else {
         lanaajat.forEach(function(lanaaja) {
-            if (lanaaja.name === name) {
-                lanaaja.fuudi = 100;
-                telegram.sendMessage(message.chat.id, `User ${lanaaja.name} just ate!`);
+            if (lanaaja.name === username) {
+                lanaaja.food = 100;
+                result = `User ${lanaaja.name} just ate!`;
             }
         });
     }
-});
+
+    return result;
+}
 
 telegram.onText(/\/sleep/, (message) => {
-    const name = message.from.username;
+    telegram.sendMessage(message.chat.id, lanaajaSleep(message.from.username));
+});
+
+function lanaajaSleep(username) {
+    var result = "";
     if (lanaajat.length === 0) {
-        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+        result = "The current user is not initialized";
     } else {
         lanaajat.forEach(function(lanaaja) {
-            console.log(lanaaja);
-            if (lanaaja.name === name) {
-                lanaaja.uni = 100;
-                telegram.sendMessage(message.chat.id, `User ${lanaaja.name} just woke up!`);
+            if (lanaaja.name === username) {
+                lanaaja.sleep = 100;
+                result = `User ${lanaaja.name} just woke up!`;
             }
         });
     }
+
+    return result;
+}
+
+telegram.onText(/\/drinkes/, (message) => {
+    telegram.sendMessage(message.chat.id, drinkES(message.from.username));
 });
 
-telegram.onText(/\/drinkES/, (message) => {
-    const name = message.from.username;
+function drinkES(username) {
+    var result = "";
     if (lanaajat.length === 0) {
-        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+        result = "The current user is not initialized";
     } else {
         lanaajat.forEach(function(lanaaja) {
-            console.log(lanaaja);
-            if (lanaaja.name === name) {
+            if (lanaaja.name === username) {
                 if (lanaaja.es === 0) {
-                    telegram.sendMessage(message.chat.id, `User ${lanaaja.name} has no more ES!!!`);
+                    result = `User ${lanaaja.name} has no more ES!!!`;
                 } else {
-                    lanaaja.uni += lanaaja.esh;
-                    lanaaja.esh = lanaaja.esh - (0.3 * lanaaja.esh);
+                    if (lanaaja.sleep + lanaaja.esh > 100.0) {
+                        lanaaja.sleep = 100.0;
+                    } else {
+                        lanaaja.sleep += lanaaja.esh;
+                    }
+                    lanaaja.esh = lanaaja.esh - (esDiminishingReturns * lanaaja.esh);
                     lanaaja.es -= 1;
-                    telegram.sendMessage(message.chat.id, `PÄRINÄ PÄÄLLE`);
+                    result = `PÄRINÄ PÄÄLLE`;
                 }
             }
         });
     }
-});
 
-telegram.onText(/\/stashES (\b\d+\b)/, (message, match) => {
+    return result;
+}
 
-    console.log("STASHES");
-    const name = message.from.username;
+telegram.onText(/\/stashes (\b\d+\b)/, (message, match) => {
+    telegram.sendMessage(message.chat.id, stashES(message.from.username, parseInt(match[1])));
+})
+function stashES(username, amount) {
+    var result = "";
+
+    if (isNaN(amount)) {
+        return "Not a number.."
+    }
+
     if (lanaajat.length === 0) {
-        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+        result = "The current user is not initialized";
     } else {
-        lanaajat.forEach(function (lanaaja) {
-            console.log(lanaaja);
-            if (lanaaja.name === name) {
-                lanaaja.es += parseInt(match[1]);
-                telegram.sendMessage(message.chat.id, `${match[1]} EEÄSSÄÄ GOT`);
+        lanaajat.forEach(function(lanaaja) {
+            if (lanaaja.name === username) {
+                lanaaja.es += amount;
+                result = `${amount} EEÄSSÄÄ GOT`;
             }
         });
     }
+
+    return result;
+}
+
+telegram.onText(/\/eatmassy/, (message) => {
+    telegram.sendMessage(message.chat.id, eatMassy(message.from.username));
 });
 
-telegram.onText(/\/eatMässy/, (message) => {
-    const name = message.from.username;
+function eatMassy(username) {
+    var result = "";
     if (lanaajat.length === 0) {
-        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+        result = "The current user is not initialized";
     } else {
         lanaajat.forEach(function(lanaaja) {
-            console.log(lanaaja);
-            if (lanaaja.name === name) {
+            if (lanaaja.name === username) {
                 if (lanaaja.massy === 0) {
-                    telegram.sendMessage(message.chat.id, `User ${lanaaja.name} has no more MÄSSY!!!`);
+                    result = `User ${lanaaja.name} has no more MÄSSY!!!`;
                 } else {
-                    if (lanaaja.fuudi < 100.0) {
-                        lanaaja.fuudi += lanaaja.massyh;
+                    if (lanaaja.food < 100.0) {
+                        lanaaja.food += lanaaja.massyh;
                     }
                     lanaaja.massyh = lanaaja.massyh - (0.3 * lanaaja.massyh);
                     lanaaja.massy -= 1;
-                    telegram.sendMessage(message.chat.id, `HELEVETIN HYVIÄ MAKKAROITA`);
+                    result = `HELEVETIN HYVIÄ MAKKAROITA`;
                 }
             }
         });
     }
+
+    return result;
+}
+
+telegram.onText(/\/stashmassy (\b\d+\b)/, (message, match) => {
+    telegram.sendMessage(message.chat.id, stashMassy(message.from.username, parseInt(match[1])));
 });
 
-telegram.onText(/\/stashMässy (\b\d+\b)/, (message, match) => {
-    const name = message.from.username;
+function stashMassy(username, amount) {
+    var result = "";
+
+    if (isNaN(amount)) {
+        return "Not a number.."
+    }
+
     if (lanaajat.length === 0) {
-        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+        result = "The current user is not initialized";
     } else {
-        lanaajat.forEach(function (lanaaja) {
-            console.log(lanaaja);
-            if (lanaaja.name === name) {
-                lanaaja.massy += parseInt(match[1]);
-                telegram.sendMessage(message.chat.id, `${match[1]} MÄSSYY GOT`);
+        lanaajat.forEach(function(lanaaja) {
+            if (lanaaja.name === username) {
+                lanaaja.massy += amount;
+                result = `${amount} MÄSSYY GOT`;
             }
         });
     }
-});
+
+    return result;
+}
 
 telegram.onText(/\/vituttaa/, (message, match) => {
-    const name = message.from.username;
+    telegram.sendMessage(message.chat.id, vituttaaVahan(message.from.username));
+});
+
+function vituttaaVahan(username) {
+    var result = "";
     if (lanaajat.length === 0) {
-        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+        result = "The current user is not initialized";
     } else {
-        lanaajat.forEach(function (lanaaja) {
-            console.log(lanaaja);
-            if (lanaaja.name === name) {
+        lanaajat.forEach(function(lanaaja) {
+            if (lanaaja.name === username) {
                 lanaaja.vitutus2 += 10.0;
-                telegram.sendMessage(message.chat.id, `paska peli`);
+                result = `paska peli`;
             }
         });
     }
+
+    return result;
+}
+
+telegram.onText(/\/VITUTTAA/, (message) => {
+        telegram.sendMessage(message.chat.id, vituttaaHelvetisti(message.from.username));
 });
 
-telegram.onText(/\/VITUTTAA/, (message, match) => {
-    const name = message.from.username;
+function vituttaaHelvetisti(username) {
+    var result = "";
     if (lanaajat.length === 0) {
-        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+        result = "The current user is not initialized";
     } else {
-        lanaajat.forEach(function (lanaaja) {
-            console.log(lanaaja);
-            if (lanaaja.name === name) {
+        lanaajat.forEach(function(lanaaja) {
+            if (lanaaja.name === username) {
                 lanaaja.vitutus2 += 20.0;
-                telegram.sendMessage(message.chat.id, `VITUN JONNET`);
+                result = `VITUN JONNET`;
             }
         });
     }
+
+    return result;
+}
+
+telegram.onText(/\/teppoavituttaa/, (message) => {
+    telegram.sendMessage(message.chat.id, teppoaVituttaa(message.from.username));
 });
 
-telegram.onText(/\/resetUser/, (message, match) => {
-    const name = message.from.username;
+function teppoaVituttaa(username) {
+    var result = "";
     if (lanaajat.length === 0) {
-        telegram.sendMessage(message.chat.id, "The current user is not initialized");
+        result = "The current user is not initialized";
     } else {
-        lanaajat.forEach(function (lanaaja) {
-            console.log(lanaaja);
-            if (lanaaja.name === name) {
-                resetStats(lanaaja)
-                telegram.sendMessage(message.chat.id, `${lanaaja.name}'s stats have been reset!`);
+        lanaajat.forEach(function(lanaaja) {
+            if (lanaaja.name === username) {
+                lanaaja.vitutus2 += 30.0;
+                result = `Nooh, tuon olisi voinut pelata paremmin ja käytin ultin liian aikasin..`;
             }
         });
     }
+
+    return result;
+}
+
+telegram.onText(/\/eivituta/, (message) => {
+    telegram.sendMessage(message.chat.id, eiVituta(message.from.username));
 });
 
-function resetStats(lanaaja) {
-    lanaaja.uni = 100.0;
-    lanaaja.es  = 0;
-    lanaaja.esh = 30.0;
-    lanaaja.fuudi = 100.0;
-    lanaaja.massy = 0;
-    lanaaja.massyh = 10.0;
-    lanaaja.vitutus1 = 0.0;
-    lanaaja.vitutus2 = 0.0;
-    lanaaja.saastaisuus = 0.0;
+function eiVituta(username) {
+    var result = "";
+    if (lanaajat.length === 0) {
+        result = "The current user is not initialized";
+    } else {
+        lanaajat.forEach(function(lanaaja) {
+            if (lanaaja.name === username) {
+                lanaaja.vitutus2 = 0.0;
+                result = `:)`;
+            }
+        });
+    }
+
+    return result;
+}
+
+telegram.onText(/\/sauna/, (message) => {
+    telegram.sendMessage(message.chat.id, sauna(message.from.username));
+});
+
+function sauna(username) {
+    var result = "";
+    if (lanaajat.length === 0) {
+        result = "The current user is not initialized";
+    } else {
+        lanaajat.forEach(function(lanaaja) {
+            if (lanaaja.name === username) {
+                lanaaja.filth = 0.0;
+                result = `Sauna #1`;
+            }
+        });
+    }
+
+    return result;
+}
+
+telegram.onText(/\/resetuser/, (message, match) => {
+    telegram.sendMessage(message.chat.id, resetStats(message.from.username));
+});
+
+function resetStats(username) {
+    var result = "";
+    if (lanaajat.length === 0) {
+        result = "The current user is not initialized";
+    } else {
+        lanaajat.forEach(function(lanaaja) {
+            if (lanaaja.name === username) {
+                lanaaja.sleep = 100.0;
+                lanaaja.es  = 0;
+                lanaaja.esh = 30.0;
+                lanaaja.food = 100.0;
+                lanaaja.massy = 0;
+                lanaaja.massyh = 10.0;
+                lanaaja.vitutus1 = 0.0;
+                lanaaja.vitutus2 = 0.0;
+                lanaaja.filth = 0.0;
+                result = `${lanaaja.name}'s stats have been reset!`;
+            }
+        });
+    }
+
+    return result;
+}
+
+telegram.onText(/\/help/, (message) => {
+    telegram.sendMessage(message.chat.id, help());
+});
+
+function help() {
+    return `Komennot: \n
+    /assytimer - Assembly 2017 countdown \n
+    /drinkes - Juo ES \n
+    /eatfood - Syö ruokaa \n
+    /eatmassy - Syö mässyä \n
+    /eivituta - Nyt ei vituta \n
+    /sauna - Käy saunassa \n
+    /sleep - Nuku \n
+    /stashes - Päivitä ES määrä \n
+    /stashmassy - Päivitä Mässymäärä \n
+    /statusall - Kaikkien status \n
+    /statusme - Oma status \n
+    /teppoavituttaa - NYT ON TEPPO VIHAINEN \n
+    /vituttaa - Nyt vähän vituttaa \n
+    /VITUTTAA - VITTU KU VITUTTAA`
 }
 
 telegram.on('polling_error', (error) => {
-    console.log(error.code);  // => 'EFATAL'
+    console.log("polling error: " + error.code);  // => 'EFATAL'
 });
 
 
