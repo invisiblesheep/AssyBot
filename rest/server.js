@@ -314,13 +314,13 @@ function sendWarningMessage(message, username) {
 }
 
 function renderColumns(food, sleep, es, frustration, lanpower, massy, filth){
-    let foodColumn = renderFoodColumn(food);
-    let sleepColumn = renderSleepColumn(sleep);
-    let esColumn = renderEsColumn(es > 10 ? 10 : es);
-    let frustrationColumn = renderVitutusColumn(frustration);
-    let lanpowerColumn = renderColumn(lanpower);
-    let massyColumn = renderMassyColumn(massy > 10 ? 10 : massy);
-    let filthColumn = renderFilthColumn(filth);
+    let foodColumn = renderColumn(food >= 100 ? 100 : food);
+    let sleepColumn = renderColumn(sleep >= 100 ? 100 : sleep);
+    let esColumn = renderColumn(es > 25 ? 100 : es * 4);
+    let frustrationColumn = renderColumn(frustration >= 100 ? 100 : frustration);
+    let lanpowerColumn = renderColumn(lanpower >= 100 ? 100 : lanpower);
+    let massyColumn = renderColumn(massy > 10 ? 100 : massy * 10);
+    let filthColumn = renderColumn(filth >= 100 ? 100 : filth);
     // var columns = "\nFood:  " + foodColumn + "\nSleep: "+sleepColumn+"\nES:    "+esColumn+"\nFuck:  "+frustrationColumn+"\nLP:    "+lanpowerColumn;
     return `\nFood:  ${foodColumn} ${food}%\nSleep ${sleepColumn} ${sleep}%\nFilth:    ${filthColumn} ${filth}%\nES:    ${esColumn} ${es}\nMässy:   ${massyColumn} ${massy}\nFuck:  ${frustrationColumn} ${frustration}%\nLP:   ${lanpowerColumn} ${lanpower}%`
     // return columns;
@@ -604,7 +604,11 @@ function drinkES(username) {
                 if (lanaaja.es === 0) {
                     result = `User ${lanaaja.name} has no more ES!!!`;
                 } else {
-                    lanaaja.sleep += lanaaja.esh;
+                    if (lanaaja.sleep + lanaaja.esh > 100.0) {
+                        lanaaja.sleep = 100.0;
+                    } else {
+                        lanaaja.sleep += lanaaja.esh;
+                    }
                     lanaaja.esh = lanaaja.esh - (esDiminishingReturns * lanaaja.esh);
                     lanaaja.es -= 1;
                     result = `PÄRINÄ PÄÄLLE`;
@@ -713,8 +717,8 @@ function vituttaaVahan(username) {
     return result;
 }
 
-telegram.onText(/\/VITUTTAA/, (message, match) => {
-        telegram.sendMessage(message.chat.id, vituttaaHelvetisti(messag.from.username));
+telegram.onText(/\/VITUTTAA/, (message) => {
+        telegram.sendMessage(message.chat.id, vituttaaHelvetisti(message.from.username));
 });
 
 function vituttaaHelvetisti(username) {
