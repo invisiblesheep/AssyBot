@@ -9,7 +9,10 @@ var http = require('http'),
     //mongoose = require('mongoose'),
     assert = require('assert'),
     TelegramBot = require('node-telegram-bot-api'),
-    Lanaaja = require('./Lanaaja').Lanaaja;
+    Lanaaja = require('./Lanaaja').Lanaaja,
+    fs = require('fs'),
+    request = require('request'),
+    cheerio = require('cheerio');
 
 //Express
 var app = express();
@@ -133,6 +136,10 @@ client.on("message", (message) => {
 
                 if (message.content.startsWith("/assytimer")) {
                     message.channel.send(assyTimer());
+                }
+
+                if (message.content.startsWith("/events")) {
+                    message.channel.send(events());
                 }
 
             }
@@ -454,6 +461,31 @@ var lanaajat = [];
 var telegramChatIds = new Map();
 var discordChatIds = new Map();
 const countDownDate = new Date("2017-08-06T14:00:00+00:00").getTime();
+
+function events(){
+    let url1 = "http://m.assembly.org/"
+
+    request(url1, function (error, response, html) {
+
+        if (!error) {
+            var $ = cheerio.load(html);
+
+            var now, next1, next2;
+
+            $('.f').filter(function(){
+
+                let data = $(this);
+
+                console.log(data.children);
+                // now = data.children().first().children().first().text();
+            });
+
+            // return now;
+        }
+    });
+
+   return
+}
 
 telegram.onText(/\/assytimer/, (message) => {
     telegram.sendMessage(message.chat.id, assyTimer());
