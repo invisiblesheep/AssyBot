@@ -10,7 +10,7 @@ class Lanaaja {
         this.massyh = 10.0;
         this.vitutus1 = 0.0;
         this.vitutus2 = 0.0;
-        this.filth = 0.0;
+        this.filth = 30.0;
 
         this.foodWarningFlagLow = false;
         this.foodWarningFlagMed = false;

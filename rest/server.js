@@ -19,7 +19,7 @@ var http = require('http'),
 var app = express();
 app.use(bodyParser.urlencoded({ extended: true}));
 app.use(bodyParser.json());
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 3002);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
@@ -32,7 +32,7 @@ var collectionDriver;
 const token = "433183839:AAGG7rJinMHDU4ViYi5cxqKRMX4a8bRNspY";
 const url = 'https://arvala.eu';
 //bot which uses polling and getUpdates-method
-// var telegram = new TelegramBot(token, { polling: true });
+//var telegram = new TelegramBot(token, { polling: true });
 
 var telegram = new TelegramBot(token);
 
@@ -328,10 +328,10 @@ function sendWarningMessage(message, username) {
 function renderColumns(food, sleep, es, frustration, lanpower, massy, filth){
     let foodColumn = renderFoodColumn(food >= 100 ? 100 : food);
     let sleepColumn = renderSleepColumn(sleep >= 100 ? 100 : sleep);
-    let esColumn = renderEsColumn(es > 25 ? 100 : es * 4);
+    let esColumn = renderEsColumn(es > 10 ? 10 : es);
     let frustrationColumn = renderVitutusColumn(frustration >= 100 ? 100 : frustration);
     let lanpowerColumn = renderColumn(lanpower >= 100 ? 100 : lanpower);
-    let massyColumn = renderMassyColumn(massy > 10 ? 100 : massy * 10);
+    let massyColumn = renderMassyColumn(massy > 10 ? 10 : massy);
     let filthColumn = renderFilthColumn(filth >= 100 ? 100 : filth);
     // var columns = "\nFood:  " + foodColumn + "\nSleep: "+sleepColumn+"\nES:    "+esColumn+"\nFuck:  "+frustrationColumn+"\nLP:    "+lanpowerColumn;
     var columns = `\nFood:  ${foodColumn} ${food}%\nSleep ${sleepColumn} ${sleep}%\nFilth:    ${filthColumn} ${filth}%\nES:    ${esColumn} ${es}\nMässy:   ${massyColumn} ${massy}\nFuck:  ${frustrationColumn} ${frustration}%\nLP:   ${lanpowerColumn} ${lanpower}%`
@@ -375,7 +375,7 @@ function renderFilthColumn(value){
     //console.log(num);
     var column = "";
     for(count = 0; count < num; count++){
-        column= column.concat(":poo:");
+        column= column.concat(":hankey:");
         //console.log(column);
     }
     //console.log(column);
@@ -913,10 +913,10 @@ http.createServer(app).listen(app.get('port'), function(){
 });
 
 
-// app.post(`/bot${token}`, (req, res) => {
-//   telegram.processUpdate(req.body);
-//   res.sendStatus(200);
-// });
+ app.post(`/bot${token}`, (req, res) => {
+   telegram.processUpdate(req.body);
+   res.sendStatus(200);
+ });
 
 // var port = 3002;
 // app.listen(port, () => {
