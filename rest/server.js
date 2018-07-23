@@ -29,7 +29,7 @@ var collectionDriver;
 */
 //Telegram
 
-const token = "433183839:AAGG7rJinMHDU4ViYi5cxqKRMX4a8bRNspY";
+const token = "ADDTOKENBUTNOTHEREPLS";
 const url = 'https://arvala.eu';
 //bot which uses polling and getUpdates-method
 //var telegram = new TelegramBot(token, { polling: true });
@@ -48,7 +48,7 @@ MongoClient.connect(mongoHost, function(err, db){
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
-client.login("MzQxMjcwNzMxMzM1Nzk0Njk5.DF-p_Q.5Q5lzfvI0qxbPLHfw9wwfML4UXc");
+client.login("ADDTOKENBUTNOTHEREPLS");
 
 client.on("ready", () => {
     // addUser"testi1");
