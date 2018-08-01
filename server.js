@@ -880,6 +880,7 @@ telegram.onText(/\/help/, (message) => {
 
 function help() {
     return `Komennot: \n
+    /adduser - Lisää käyttäjä \n
     /assytimer - Assembly 2017 countdown \n
     /drinkes - Juo ES \n
     /eatfood - Syö ruokaa \n
@@ -913,6 +914,9 @@ http.createServer(app).listen(app.get('port'), function(){
    res.sendStatus(200);
  });
 
+app.get('/.well-known/acme-challenge/r9I7gZ_4Mh665a-LV71xZfVmflbYUrtkPlAo_UdRmOU', function (req, res) {
+    res.send("r9I7gZ_4Mh665a-LV71xZfVmflbYUrtkPlAo_UdRmOU.ZMBjUj1iD8mg6TO9h3l_syX1wqySegUa2pghX1VigCc")
+}
 // var port = 3002;
 // app.listen(port, () => {
 //   console.log(`Express server is listening on ${port}`);
