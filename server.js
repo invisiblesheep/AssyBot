@@ -22,7 +22,7 @@ app.use(bodyParser.json());
 app.set('port', process.env.PORT || 3002);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
-app.use(express.static('public'))
+// app.use(express.static('public'))
 
 /*//MongoDB
 var mongoHost = 'mongodb://localhost:27017/AssyBot';
