@@ -53,6 +53,7 @@ var userActionLog = db.model('UserActionLog', userActionLogSchema);
 module.exports.userActionLog = userActionLog;
 
 var snapshotSchema = new mongoose.Schema({
+  timestamp: { type: Date, default: Date.now } ,
   lanaajat: [lanaajaSchema]
 });
 var Snapshot = db.model('Snapshot', snapshotSchema);

@@ -172,6 +172,8 @@ const filthGainHours = process.env.FILTHGAIN || 24.0;
 const esGainToSleep = process.env.ESGAIN || 30.0;
 const esDiminishingReturns = process.env.ESDIMINISH || 0.3;
 const decayIntervalInMinutes = process.env.DECAYINTERVAL || 15.0;
+const snapshotIntervalInMinutes = process.env.SNAPSHOTINTERVAL || 5.0;
+
 const decayCountPerHour = 60.0 / decayIntervalInMinutes;
 
 const warningLevelLow = process.env.WARNINGLEVELLOW || 25.0;
@@ -187,6 +189,13 @@ setInterval(function(){
   console.log("setInterval: Updating player stats");
     decayUserStats();
 }, decayIntervalInMinutes * 60000);
+
+// Take snapshot of db
+setInterval(function(){
+  console.log("setInterval: Taking snapshot of db");
+    // decayUserStats();
+    snapshotDB();
+}, snapshotIntervalInMinutes * 60000);
 
 function decayUserStats(){
     if (lanaajat.length > 0) {
@@ -205,10 +214,26 @@ function decayUserStats(){
             checkFoodLevels(lanaaja);
             checkSleepLevels(lanaaja);
             checkFilthLevels(lanaaja);
+            LanaajaDB.findOneAndUpdate({ name: lanaaja.name }, {$set:{food: lanaaja.food, sleep: lanaaja.sleep, filth: lanaaja.filth, foodWarningFlagLow: lanaaja.foodWarningFlagLow, foodWarningFlagMed: lanaaja.foodWarningFlagMed, foodWarningFlagHigh: lanaaja.foodWarningFlagHigh,
+                sleepWarningFlagLow: lanaaja.sleepWarningFlagLow,
+                sleepWarningFlagMed: lanaaja.sleepWarningFlagMed,
+                sleepWarningFlagHigh: lanaaja.sleepWarningFlagHigh,
+                filthWarningFlagLow: lanaaja.filthWarningFlagLow,
+                filthWarningFlagMed: lanaaja.filthWarningFlagMed,
+                filthWarningFlagHigh: lanaaja.filthWarningFlagHigh}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
         });
     }
 }
 
+async function snapshotDB(){
+  var lanaajat = await LanaajaDB.find();
+  var snapshot = new Snapshot({ lanaajat: lanaajat });
+  snapshot.save();
+}
 // function checkLevelsOfAttribute(lanaaja, attr) {
 //     let attribute;
 //     let flag;
@@ -478,7 +503,7 @@ function renderColumn(value){
 var lanaajat = [];
 var telegramChatIds = new Map();
 var discordChatIds = new Map();
-const countDownDate = new Date("2017-08-06T14:00:00+00:00").getTime();
+const countDownDate = new Date("2018-08-05T14:00:00+00:00").getTime();
 
 function events(){
     let url1 = "http://m.assembly.org/"
@@ -518,7 +543,7 @@ function assyTimer() {
     let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
     let seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-    return `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds of ASSEMBLY 2017 left!`
+    return `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds of ASSEMBLY 2018 left!`
 }
 
 telegram.onText(/\/statusme/, (message) => {
@@ -655,6 +680,11 @@ function eatFood(username) {
             if (lanaaja.name === username) {
                 lanaaja.food = 100;
                 result = `User ${lanaaja.name} just ate!`;
+            LanaajaDB.findOneAndUpdate({ name: lanaaja.name }, {$set:{food: lanaaja.food}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
             }
         });
     }
@@ -675,6 +705,11 @@ function lanaajaSleep(username) {
             if (lanaaja.name === username) {
                 lanaaja.sleep = 100;
                 result = `User ${lanaaja.name} just woke up!`;
+            LanaajaDB.findOneAndUpdate({ name: lanaaja.name }, {$set:{sleep: lanaaja.sleep}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
             }
         });
     }
@@ -704,6 +739,11 @@ function drinkES(username) {
                     lanaaja.esh = lanaaja.esh - (esDiminishingReturns * lanaaja.esh);
                     lanaaja.es -= 1;
                     result = `PÄRINÄ PÄÄLLE`;
+            LanaajaDB.findOneAndUpdate({ name: lanaaja.name }, {$set:{sleep: lanaaja.sleep, esh: lanaaja.esh, es: lanaaja.es}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
                 }
             }
         });
@@ -729,6 +769,11 @@ function stashES(username, amount) {
             if (lanaaja.name === username) {
                 lanaaja.es += amount;
                 result = `${amount} EEÄSSÄÄ GOT`;
+            LanaajaDB.findOneAndUpdate({ name: lanaaja.name }, {$set:{es: lanaaja.es}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
             }
         });
     }
@@ -756,6 +801,11 @@ function eatMassy(username) {
                     lanaaja.massyh = lanaaja.massyh - (0.3 * lanaaja.massyh);
                     lanaaja.massy -= 1;
                     result = `HELEVETIN HYVIÄ MAKKAROITA`;
+            LanaajaDB.findOneAndUpdate({ name: lanaaja.name }, {$set:{massyh: lanaaja.massyh, massy: lanaaja.massy}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
                 }
             }
         });
@@ -782,6 +832,11 @@ function stashMassy(username, amount) {
             if (lanaaja.name === username) {
                 lanaaja.massy += amount;
                 result = `${amount} MÄSSYY GOT`;
+            LanaajaDB.findOneAndUpdate({ name: lanaaja.name }, {$set:{massy: lanaaja.massy}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
             }
         });
     }
@@ -802,6 +857,11 @@ function vituttaaVahan(username) {
             if (lanaaja.name === username) {
                 lanaaja.vitutus2 += 10.0;
                 result = `paska peli`;
+            LanaajaDB.findOneAndUpdate({ name: lanaaja.name }, {$set:{vitutus2: lanaaja.vitutus2}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
             }
         });
     }
@@ -822,6 +882,11 @@ function vituttaaHelvetisti(username) {
             if (lanaaja.name === username) {
                 lanaaja.vitutus2 += 20.0;
                 result = `VITUN JONNET`;
+            LanaajaDB.findOneAndUpdate({ name: lanaaja.name }, {$set:{vitutus2: lanaaja.vitutus2}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
             }
         });
     }
@@ -842,6 +907,11 @@ function teppoaVituttaa(username) {
             if (lanaaja.name === username) {
                 lanaaja.vitutus2 += 30.0;
                 result = `Nooh, tuon olisi voinut pelata paremmin ja käytin ultin liian aikasin..`;
+            LanaajaDB.findOneAndUpdate({ name: lanaaja.name }, {$set:{vitutus2: lanaaja.vitutus2}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
             }
         });
     }
@@ -862,6 +932,11 @@ function eiVituta(username) {
             if (lanaaja.name === username) {
                 lanaaja.vitutus2 = 0.0;
                 result = `:)`;
+            LanaajaDB.findOneAndUpdate({ name: lanaaja.name }, {$set:{vitutus2: lanaaja.vitutus2}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
             }
         });
     }
@@ -882,6 +957,11 @@ function sauna(username) {
             if (lanaaja.name === username) {
                 lanaaja.filth = 0.0;
                 result = `Sauna #1`;
+            LanaajaDB.findOneAndUpdate({ name: lanaaja.name }, {$set:{filth: lanaaja.filth}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
             }
         });
     }
@@ -910,6 +990,11 @@ function resetStats(username) {
                 lanaaja.vitutus2 = 0.0;
                 lanaaja.filth = 0.0;
                 result = `${lanaaja.name}'s stats have been reset!`;
+            LanaajaDB.findOneAndUpdate({ name: lanaaja.name }, {$set:{sleep: lanaaja.sleep, es: lanaaja.es, esh: lanaaja.esh, food: lanaaja.food, massy: lanaaja.massy, massyh: lanaaja.massyh, vitutus1: lanaaja.vitutus1, vitutus2: lanaaja.vitutus2, filth: lanaaja.filth}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
             }
         });
     }
@@ -924,7 +1009,7 @@ telegram.onText(/\/help/, (message) => {
 function help() {
     return `Komennot: \n
     /adduser - Lisää käyttäjä \n
-    /assytimer - Assembly 2017 countdown \n
+    /assytimer - Assembly 2018 countdown \n
     /drinkes - Juo ES \n
     /eatfood - Syö ruokaa \n
     /eatmassy - Syö mässyä \n
@@ -939,6 +1024,7 @@ function help() {
     /vituttaa - Nyt vähän vituttaa \n
     /VITUTTAA - VITTU KU VITUTTAA`
 }
+
 
 telegram.on('polling_error', (error) => {
     console.log("polling error: " + error.code);  // => 'EFATAL'
