@@ -31,20 +31,13 @@ var collectionDriver;
 
 const token = process.env.TELEGRAMTOKEN
 console.log(token)
-const url = 'https://arvala.eu';
 //bot which uses polling and getUpdates-method
-//var telegram = new TelegramBot(token, { polling: true });
+var telegram = new TelegramBot(token, { polling: true });
 
-var telegram = new TelegramBot(token);
-
-telegram.setWebHook(`${url}/bot${token}`);
-/*
-MongoClient.connect(mongoHost, function(err, db){
-  assert.equal(null, err);
-  console.log('Connected to mongodb server');
-  collectionDriver = new CollectionDriver(db);
-});
-*/
+// Uncomment for webhook
+// const url = 'https://arvala.eu';
+// var telegram = new TelegramBot(token);
+// telegram.setWebHook(`${url}/bot${token}`);
 
 const Discord = require("discord.js");
 const client = new Discord.Client();
