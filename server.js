@@ -915,3 +915,6 @@ http.createServer(app).listen(app.get('port'), function(){
    res.sendStatus(200);
  });
 
+app.get('/', (req, res) => {
+    res.send('AssyBot 2018');
+});
