@@ -29,7 +29,8 @@ var collectionDriver;
 */
 //Telegram
 
-const token = "ADDTOKENBUTNOTHEREPLS";
+const token = process.env.TELEGRAMTOKEN
+console.log(token)
 const url = 'https://arvala.eu';
 //bot which uses polling and getUpdates-method
 //var telegram = new TelegramBot(token, { polling: true });
@@ -47,8 +48,9 @@ MongoClient.connect(mongoHost, function(err, db){
 
 const Discord = require("discord.js");
 const client = new Discord.Client();
-
-client.login("ADDTOKENBUTNOTHEREPLS");
+const discordToken = process.env.DISCORDTOKEN
+console.log(discordToken)
+client.login(discordToken);
 
 client.on("ready", () => {
     // addUser"testi1");
