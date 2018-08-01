@@ -1,4 +1,7 @@
 //Dependencies
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').load();
+}
 var http = require('http'),
     emoji = require('node-emoji')
     express = require('express'),
@@ -7,9 +10,12 @@ var http = require('http'),
     //MongoClient = require('mongodb').MongoClient,
     //Server = require('mongodb').Server,
     //CollectionDriver = require('./collectionDriver').CollectionDriver,
-    //mongoose = require('mongoose'),
+    mongoose = require('mongoose'),
     assert = require('assert'),
     TelegramBot = require('node-telegram-bot-api'),
+    LanaajaDB = require('./db').LanaajaDB,
+    Snapshot = require('./db').Snapshot,
+    userActionLog = require('./db').userActionLog,    
     Lanaaja = require('./Lanaaja').Lanaaja,
     fs = require('fs'),
     request = require('request'),
@@ -24,21 +30,23 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 // app.use(express.static('public'))
 
+
 /*//MongoDB
 var mongoHost = 'mongodb://localhost:27017/AssyBot';
 var collectionDriver;
 */
 //Telegram
-
+// var tuomas = new Lanaaja({name: 'Tuomas'});
+// tuomas.save();
 const token = process.env.TELEGRAMTOKEN
 console.log(token)
 //bot which uses polling and getUpdates-method
-// var telegram = new TelegramBot(token, { polling: true });
+var telegram = new TelegramBot(token, { polling: true });
 
 // Uncomment for webhook
-const url = 'https://assybot.jokioja.fi'
-var telegram = new TelegramBot(token);
-telegram.setWebHook(`${url}/bot${token}`);
+// const url = 'https://assybot.jokioja.fi'
+// var telegram = new TelegramBot(token);
+// telegram.setWebHook(`${url}/bot${token}`);
 
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -52,6 +60,12 @@ client.on("ready", () => {
     console.log("I am ready!");
 });
 
+function getUserByName(name) {
+  Lanaaja.findOne({ name: name }, function(err, lanaaja) {
+    if (err) return 'Lanaaja not found';
+    console.log('LANAAJA FOUND');
+  });
+}
 client.on("message", (message) => {
 
     // console.log(message.content);
@@ -180,6 +194,13 @@ function decayUserStats(){
             lanaaja.food >= foodDecay ? lanaaja.food -= foodDecay : lanaaja.food = 0;
             lanaaja.sleep >= sleepDecay ? lanaaja.sleep -= sleepDecay : lanaaja.sleep = 0;
             lanaaja.filth <= 100.0 - filthGain ? lanaaja.filth += filthGain : lanaaja.filth = 100.0;
+	    
+            LanaajaDB.findOneAndUpdate({ name: lanaaja.name }, {$set:{food: lanaaja.food, sleep: lanaaja.sleep, filth: lanaaja.filth}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
+            
 
             checkFoodLevels(lanaaja);
             checkSleepLevels(lanaaja);
@@ -559,10 +580,18 @@ function addUserTelegram(username, chatId) {
         if (!lanaajaExists) {
             let newPlayer = new Lanaaja(username, esGainToSleep);
             lanaajat.push(newPlayer);
+
+            let newPlayerDB = new LanaajaDB({name: username, telegramChatId: chatId});
+	    newPlayerDB.save();
         }
         // console.log(newPlayer.food);
 
         if (lanaajaExists) {
+            LanaajaDB.findOneAndUpdate({ name: username }, {$set:{telegramChatId: chatId}}, (err, todo) => {
+                // Handle any possible database errors
+                        if (err) return res.status(500).send(err);
+			// return res.send(todo);
+			});
             return `Telegram integration enabled for user ${username}`;
         }
         return `User ${username} created, telegram integration enabled`;
@@ -590,10 +619,23 @@ function addUserDiscord(username, chatId) {
         if (!lanaajaExists) {
             let newPlayer = new Lanaaja(username, esGainToSleep);
             lanaajat.push(newPlayer);
+            let newPlayerDB = new LanaajaDB({name: username, discordChatId: chatId});
+	    newPlayerDB.save();
         }
         // console.log(newPlayer.food);
 
         if (lanaajaExists) {
+	console.log(chatId);
+            LanaajaDB.findOneAndUpdate({ name: username }, {$set:{discordChatId: chatId}}, (err, todo) => {
+		// Handle any possible database errors
+		if (err) return res.status(500).send(err);
+		// return res.send(todo);
+         	});
+
+
+
+	    // playerDB.discordChatId = chatId;
+	    // playerDB.save();
             return `Discord integration enabled for user ${username}`;
         }
         return `User ${username} created, discord integration enabled`;
