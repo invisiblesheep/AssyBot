@@ -36,7 +36,7 @@ console.log(token)
 // var telegram = new TelegramBot(token, { polling: true });
 
 // Uncomment for webhook
-const url = 'https://assybot.jokioja.fi;
+const url = 'https://assybot.jokioja.fi'
 var telegram = new TelegramBot(token);
 telegram.setWebHook(`${url}/bot${token}`);
 
