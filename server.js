@@ -15,6 +15,7 @@ var http = require('http'),
     request = require('request'),
     cheerio = require('cheerio');
 
+
 //Express
 var app = express();
 app.use(bodyParser.urlencoded({ extended: true}));
@@ -23,6 +24,11 @@ app.set('port', process.env.PORT || 3002);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 // app.use(express.static('public'))
+app.get('/graph', function (req, res) {
+  //res.send('graph')
+  res.sendFile(__dirname + '/graph.html');
+
+})
 
 /*//MongoDB
 var mongoHost = 'mongodb://localhost:27017/AssyBot';
@@ -33,12 +39,12 @@ var collectionDriver;
 const token = process.env.TELEGRAMTOKEN
 console.log(token)
 //bot which uses polling and getUpdates-method
-// var telegram = new TelegramBot(token, { polling: true });
+var telegram = new TelegramBot(token, { polling: true });
 
 // Uncomment for webhook
-const url = 'https://assybot.jokioja.fi'
-var telegram = new TelegramBot(token);
-telegram.setWebHook(`${url}/bot${token}`);
+//const url = 'https://assybot.jokioja.fi'
+//var telegram = new TelegramBot(token);
+//telegram.setWebHook(`${url}/bot${token}`);
 
 const Discord = require("discord.js");
 const client = new Discord.Client();
