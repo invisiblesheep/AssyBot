@@ -4,10 +4,24 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node server.js",
+    "lint": "eslint . --quiet",
+    "precommit": "eslint . --quiet && lint-staged && yarn test",
+    "start": "node ./node_modules/.bin/pm2-runtime server.js",
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
+  "lint-staged": {
+    "*.{js,json,css}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
   "dependencies": {
     "async": "^2.6.1",
     "body-parser": "^1.18.3",
@@ -15,16 +29,26 @@
     "discord.js": "^11.3.2",
     "dotenv": "^6.0.0",
     "express": "^4.16.3",
-    "jade": "1.1.5",
-    "mongoose": "^5.2.6",
+    "lodash": "^4.17.15",
+    "mongoose": "^5.6.7",
     "node-emoji": "^1.8.1",
     "node-restful": "^0.2.5",
     "node-telegram-bot-api": "^0.27.1",
-    "nodemon": "^1.18.3"
+    "nodemon": "^1.18.3",
+    "pm2": "^3.5.1",
+    "pug": "^2.0.4",
+    "request": "^2.88.0"
   },
   "devDependencies": {
-    "eslint": "^4.19.1",
-    "eslint-config-airbnb-base": "^13.0.0",
-    "eslint-plugin-import": "^2.13.0"
+    "babel-eslint": "^8.2.2",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.2.0",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-prettier": "^2.6.0",
+    "husky": "^0.14.3",
+    "jest": "^22.4.3",
+    "lint-staged": "^7.0.3",
+    "prettier": "^1.11.1"
   }
 }

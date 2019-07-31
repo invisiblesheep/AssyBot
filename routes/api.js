@@ -1,15 +1,16 @@
 
 // Dependencies
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+
+const router = express.Router();
 
 
 // Models
-var User = require('../models/user');
+const User = require('../models/user');
 
 
 // Routes
-User.methods(['get','put','post','delete']);
+User.methods(['get', 'put', 'post', 'delete']);
 User.register(router, '/user');
 
 // Return Router
