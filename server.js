@@ -679,8 +679,8 @@ setInterval(() => {
 }, decayIntervalInMinutes * 60000);
 
 const snapshotDB = async () => {
-  const kaikkiLanaajat = await LanaajaDB.find();
-  const snapshot = new Snapshot({ kaikkiLanaajat });
+  const kaikkiLanaajat = await LanaajaDB.find().exec();
+  const snapshot = await new Snapshot({ lanaajat: kaikkiLanaajat });
   snapshot.save();
 };
 
